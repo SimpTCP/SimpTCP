@@ -357,7 +357,7 @@ int closed_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  return -1;
+  return ENOTCONN;
 }
 
 
@@ -374,7 +374,7 @@ ssize_t closed_simptcp_socket_state_send (struct simptcp_socket* sock, const voi
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  return -1;
+  return ENOTCONN;
 }
 
 
@@ -391,7 +391,7 @@ ssize_t closed_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  return -1;
+  return ENOTCONN;
 }
 
 /**
@@ -409,7 +409,7 @@ int closed_simptcp_socket_state_close (struct simptcp_socket* sock)
   printf("function %s called\n", __func__);
 #endif
  
-  return -1;
+  return ENOTCONN;
 }
 
 /*! \fn  int closed_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
@@ -423,7 +423,7 @@ int closed_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  return -1;
+  return ENOTCONN;
 
 }
 
