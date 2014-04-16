@@ -344,7 +344,6 @@ int closed_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n
   return 0;
 }
 
-
 /*! \fn int closed_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
  * \brief lancee lorsque l'application lance l'appel "accept" alors que le socket simpTCP est dans l'etat "closed" 
  * \param sock pointeur sur les variables d'etat (#simptcp_socket) du socket simpTCP
@@ -358,7 +357,7 @@ int closed_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  return 0;
+  return -1;
 }
 
 
@@ -375,7 +374,7 @@ ssize_t closed_simptcp_socket_state_send (struct simptcp_socket* sock, const voi
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  return 0;
+  return -1;
 }
 
 
@@ -392,7 +391,7 @@ ssize_t closed_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  return 0;
+  return -1;
 }
 
 /**
@@ -410,7 +409,7 @@ int closed_simptcp_socket_state_close (struct simptcp_socket* sock)
   printf("function %s called\n", __func__);
 #endif
  
-  return 0;
+  return -1;
 }
 
 /*! \fn  int closed_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
@@ -424,7 +423,7 @@ int closed_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  return 0;
+  return -1;
 
 }
 
