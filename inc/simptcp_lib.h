@@ -38,7 +38,7 @@ enum{
  */
 enum {
   closed_state=1,
-  liste_staten=2,
+  listen_state=2,
   syn_sen_statet=3,
   syn_rcvd_state=4,
   established_state=5,

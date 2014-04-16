@@ -341,6 +341,15 @@ int closed_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
+
+  lock_simptcp_socket(sock);
+
+  sock->socket_type = listening_server;
+  sock->max_conn_req_backlog = n;
+  sock->socket_state = &(simptcp_entity.simptcp_socket_states->listen);
+
+  unlock_simptcp_socket(sock);
+  
   return 0;
 }
 
