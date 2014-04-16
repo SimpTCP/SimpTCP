@@ -327,6 +327,16 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
+
+    lock_simptcp_socket(sock);
+
+    sock->socket_type = client;
+    sock->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
+    memcpy(&(sock->remote_simptcp), addr, len);
+    simptcp_create_packet_syn(sock);
+
+    unlock_simptcp_socket(sock);
+
     return 0;
 }
 

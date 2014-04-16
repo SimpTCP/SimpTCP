@@ -11,6 +11,7 @@
 #define __PREFIX__              "[" COLOR("SIMTCP_PKT", BRIGHT_GREEN) "  ] "
 #include <term_io.h>            /* for printf() and perror() redefinition */
 
+#include <simptcp_lib.h>
 #include <simptcp_packet.h>     /* for simptcp packets*/
 
 
@@ -22,6 +23,47 @@
  * simptcp  generic header get/set functions
  */
 
+/*! \fn void simptcp_create_packet_syn(struct simptcp_socket *s)
+ * \brief Cree un packet simptcp SYN dans le buffer du socket
+ * \param s pointeur sur le socket
+*/
+void simptcp_create_packet_syn(struct simptcp_socket *s)
+{
+  simptcp_generic_header h;
+  h.sport = s->local_simptcp.sin_port;
+  h.dport = s->remote_simptcp.sin_port;
+  h.seq_num = s->next_seq_num;
+  h.ack_num = 0;
+  h.header_len = SIMPTCP_GHEADER_SIZE;
+  h.flags = SYN;
+  h.window_size = SIMPTCP_MAX_SIZE;
+  simptcp_create_packet(s->out_buffer, &h);
+  simptcp_print_packet(s->out_buffer);
+}
+
+/*! \fn void simptcp_create_packet(char *buffer, simptcp_generic_header *p)
+ * \brief Cree un packet simptcp dans le buffer passe en parametre
+ * en fonction de la structure header
+ * \param buffer pointeur sur PDU simptcp
+ * \param p pointeur sur structure du packet a creer
+*/
+void simptcp_create_packet(char *buffer, simptcp_generic_header *p)
+{
+#if __DEBUG__
+  printf("function %s called\n", __func__);
+#endif
+
+  simptcp_set_sport(buffer, p->sport);
+  simptcp_set_dport(buffer, p->dport);
+  simptcp_set_flags(buffer, p->flags);
+  simptcp_set_seq_num(buffer, p->seq_num);
+  simptcp_set_ack_num(buffer, p->ack_num);
+  simptcp_set_head_len(buffer, p->header_len);
+  simptcp_set_total_len(buffer, p->total_len);
+  simptcp_set_win_size(buffer, p->window_size);
+  simptcp_add_checksum(buffer, p->total_len);
+
+}
 
 /*! \fn void simptcp_set_sport(char * buffer, u_int16_t sport)
  * \brief initialise le champ sport (source port) du PDU SimpTCP a sport
@@ -31,7 +73,7 @@
 void simptcp_set_sport(char * buffer, u_int16_t sport)
 { 
 #if __DEBUG__
-  //  printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   ((simptcp_generic_header *)buffer)->sport = htons(sport);
 }
@@ -45,7 +87,7 @@ void simptcp_set_sport(char * buffer, u_int16_t sport)
 u_int16_t simptcp_get_sport (const char *buffer)
 {
 #if __DEBUG__
-  //  printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   return ntohs(((const simptcp_generic_header  *)buffer)->sport);
 }
@@ -59,7 +101,7 @@ u_int16_t simptcp_get_sport (const char *buffer)
 void    simptcp_set_dport (char *buffer, u_int16_t dport)
 { 
 #if __DEBUG__
-  //  printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   ((simptcp_generic_header *)buffer)->dport = htons(dport);
 }
@@ -73,7 +115,7 @@ void    simptcp_set_dport (char *buffer, u_int16_t dport)
 u_int16_t simptcp_get_dport (const char *buffer)
 {
 #if __DEBUG__
-  // printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   return ntohs(((const simptcp_generic_header  *)buffer)->dport);
 }
@@ -87,7 +129,7 @@ u_int16_t simptcp_get_dport (const char *buffer)
 void    simptcp_set_flags  (char *buffer, u_char flags)
 {
 #if __DEBUG__
-  // printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   ((simptcp_generic_header *) buffer)->flags = flags;
 }
@@ -101,7 +143,7 @@ void    simptcp_set_flags  (char *buffer, u_char flags)
 unsigned char  simptcp_get_flags  (const char *buffer)
 {
 #if __DEBUG__
-  // printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   return ((const simptcp_generic_header *) buffer)->flags;
 }
@@ -115,7 +157,7 @@ unsigned char  simptcp_get_flags  (const char *buffer)
 void    simptcp_set_seq_num   (char *buffer, u_int16_t seq)
 {
 #if __DEBUG__
-  // printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   ((simptcp_generic_header *)buffer)->seq_num = htons(seq);
 }
@@ -130,7 +172,7 @@ void    simptcp_set_seq_num   (char *buffer, u_int16_t seq)
 u_int16_t   simptcp_get_seq_num   (const char *buffer)
 {
 #if __DEBUG__
-  // printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   return ntohs(((const simptcp_generic_header  *)buffer)->seq_num);
 }
@@ -144,7 +186,7 @@ u_int16_t   simptcp_get_seq_num   (const char *buffer)
 void    simptcp_set_ack_num   (char *buffer, u_int16_t ack)
 {
 #if __DEBUG__
-  // printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   ((simptcp_generic_header *)buffer)->ack_num = htons(ack);
 }
@@ -158,7 +200,7 @@ void    simptcp_set_ack_num   (char *buffer, u_int16_t ack)
 u_int16_t   simptcp_get_ack_num   (const char *buffer)
 {
 #if __DEBUG__
-  // printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   return ntohs(((const simptcp_generic_header  *)buffer)->ack_num);
 }
@@ -172,7 +214,7 @@ u_int16_t   simptcp_get_ack_num   (const char *buffer)
 void simptcp_set_head_len   (char *buffer, unsigned char hlen)
 {
 #if __DEBUG__
-  // printf("function %s called\n", __func__);
+  printf("function %s called\n", __func__);
 #endif
   ((simptcp_generic_header *) buffer)->header_len = hlen;
 }

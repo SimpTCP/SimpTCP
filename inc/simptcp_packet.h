@@ -2,6 +2,7 @@
 *  \brief{Defines  the simptcp pdu's generic header and associated methods}
 * \author{DGEI-INSAT 2010-2011}
 */
+
 #ifndef _SIMPTCP_PACKET_H_
 #define _SIMPTCP_PACKET_H_
 
@@ -102,6 +103,9 @@ typedef struct simptcp_option_header
  * permettent egalement d'afficher sur la sortie 
  * standard le contenu du PDU
 */
+
+void simptcp_create_packet(char *buffer, simptcp_generic_header *p);
+void simptcp_create_packet_syn(struct simptcp_socket *s);
 
 void    simptcp_set_sport (char *buffer, u_int16_t sport);
 u_int16_t simptcp_get_sport (const char *buffer);
