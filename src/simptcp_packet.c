@@ -437,7 +437,7 @@ void simptcp_lprint_packet (char * buf)
             simptcp_get_sport(buf), simptcp_get_dport(buf),
 	    simptcp_get_seq_num(buf));
     printf ("+----------------+-----------------+-------------------+\n");
-    printf ("| acknum : %5hu | hlen : %3hu  | Flags : %7s|\n",
+    printf ("| acknum : %5hu | hlen : %3hhu  | Flags : %7s|\n",
 	    simptcp_get_ack_num(buf),hlen,sflags);
     printf ("+----------------+-----------------+-------------------+\n");
     if (!flags)
@@ -481,7 +481,7 @@ void simptcp_print_packet (char * buf)
         strcat (sflags, " |");
 
  
-    printf("Source port: %5hu, Destination port: %5hu, seqnum: %5hu\n acknum:%5hu, hlen: %3hu, flags: %7s, tlen: %5hu\n ",simptcp_get_sport(buf),
+    printf("Source port: %5hu, Destination port: %5hu, seqnum: %5hu\n acknum:%5hu, hlen: %3hhu, flags: %7s, tlen: %5hu\n ",simptcp_get_sport(buf),
 	   simptcp_get_dport(buf),simptcp_get_seq_num(buf), 
 	   simptcp_get_ack_num(buf),hlen,sflags,simptcp_get_total_len(buf));
     if (tlen != hlen) { /* simptcp packet conveys data */

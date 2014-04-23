@@ -71,11 +71,11 @@ int set_non_blocking(int fd)
  */
 int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
 {
-  struct simptcp_socket *sock = NULL;
-  struct simptcp_socket *new_sock = NULL; 
+  //struct simptcp_socket *sock = NULL;
+  //struct simptcp_socket *new_sock = NULL; 
   struct sockaddr_in simptcp_remote;
   u_int16_t dport;
-  int fd; /* simtcp socket descriptor */
+  //int fd; /* simtcp socket descriptor */
   int slen=sizeof(struct sockaddr_in);
 
 #if __DEBUG__

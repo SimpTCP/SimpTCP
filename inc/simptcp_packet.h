@@ -3,6 +3,8 @@
 * \author{DGEI-INSAT 2010-2011}
 */
 
+#include <simptcp_lib.h>
+
 #ifndef _SIMPTCP_PACKET_H_
 #define _SIMPTCP_PACKET_H_
 
