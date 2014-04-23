@@ -204,7 +204,7 @@ void print_simptcp_socket(struct simptcp_socket *sock)
 }
 
 
-/*! \fn inline int lock_simptcp_socket(struct simptcp_socket *sock)
+/*! \fn int lock_simptcp_socket(struct simptcp_socket *sock)
 * \brief permet l'acces en exclusion mutuelle a la structure #simptcp_socket d'un socket
 * Les variables d'etat (#simptcp_socket) d'un socket simpTCP peuvent etre modifiees par
 * l'application (client ou serveur via les appels systeme) ou l'entite protocolaire (#simptcp_entity_handler).
@@ -214,7 +214,7 @@ void print_simptcp_socket(struct simptcp_socket *sock)
 * 2- si le semaphore est indisponible, d'attendre jusqu'a ce qu'il devienne disponible avant de le "locker"
 * \param sock pointeur sur les variables d'etat (#simptcp_socket) d'un socket simpTCP
 */
-inline int lock_simptcp_socket(struct simptcp_socket *sock)
+int lock_simptcp_socket(struct simptcp_socket *sock)
 {
 #if __DEBUG__
 	printf("function %s called\n", __func__);
@@ -226,7 +226,7 @@ inline int lock_simptcp_socket(struct simptcp_socket *sock)
     return pthread_mutex_lock(&(sock->mutex_socket));
 }
 
-/*! \fn inline int unlock_simptcp_socket(struct simptcp_socket *sock)
+/*! \fn int unlock_simptcp_socket(struct simptcp_socket *sock)
 * \brief permet l'acces en exclusion mutuelle a la structure #simptcp_socket d'un socket
 * Les variables d'etat (#simptcp_socket) d'un socket simpTCP peuvent etre modifiees par
 * l'application (client ou serveur via les appels systeme) ou l'entite protocolaire (#simptcp_entity_handler).
@@ -234,7 +234,7 @@ inline int lock_simptcp_socket(struct simptcp_socket *sock)
 * Après un acces "protege" en ecriture a ces variables, l'appel a cette fonction permet de liberer le semaphore 
 * \param sock pointeur sur les variables d'etat (#simptcp_socket) d'un socket simpTCP
 */
-inline int unlock_simptcp_socket(struct simptcp_socket *sock)
+int unlock_simptcp_socket(struct simptcp_socket *sock)
 {
 #if __DEBUG__
 	printf("function %s called\n", __func__);
