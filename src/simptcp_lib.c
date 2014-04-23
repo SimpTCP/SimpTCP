@@ -102,7 +102,7 @@ void init_simptcp_socket(struct simptcp_socket *sock, unsigned int lport)
     memset(&(sock->local_simptcp), 0, sizeof (struct sockaddr));
     sock->local_simptcp.sin_family = AF_INET;
     sock->local_simptcp.sin_addr.s_addr = htonl(INADDR_ANY);
-    sock->local_simptcp.sin_port = htons(lport);
+    sock->local_simptcp.sin_port = lport;
 
     memset(&(sock->remote_simptcp), 0, sizeof (struct sockaddr));
     

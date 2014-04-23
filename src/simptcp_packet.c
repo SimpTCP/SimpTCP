@@ -38,7 +38,6 @@ void simptcp_create_packet_syn(struct simptcp_socket *s)
   h.flags = SYN;
   h.window_size = SIMPTCP_MAX_SIZE;
   simptcp_create_packet(s->out_buffer, &h);
-  simptcp_print_packet(s->out_buffer);
 }
 
 /*! \fn void simptcp_create_packet(char *buffer, simptcp_generic_header *p)
