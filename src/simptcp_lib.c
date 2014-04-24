@@ -531,7 +531,7 @@ int listen_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
 #if __DEBUG__
     printf("function %s called\n", __func__);
 #endif
-    return 0;   
+    return -1;  
 }
 
 /**
@@ -548,8 +548,7 @@ int listen_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n
 #if __DEBUG__
     printf("function %s called\n", __func__);
 #endif
-
-    return 0;
+    return -1;
 }
 
 /**
@@ -586,7 +585,7 @@ ssize_t listen_simptcp_socket_state_send (struct simptcp_socket* sock, const voi
 #if __DEBUG__
     printf("function %s called\n", __func__);
 #endif
-    return 0;
+    return -1;
 }
 
 /**
@@ -605,8 +604,7 @@ ssize_t listen_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf
 #if __DEBUG__
     printf("function %s called\n", __func__);
 #endif
-    return 0;
-
+    return -1;
 }
 
 /**
@@ -623,7 +621,6 @@ int listen_simptcp_socket_state_close (struct simptcp_socket* sock)
     printf("function %s called\n", __func__);
 #endif
     return 0;
-
 }
 
 /**
