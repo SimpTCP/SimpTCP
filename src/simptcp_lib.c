@@ -317,9 +317,8 @@ int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
 #endif
 
   int ret = -1;
-  int fd = libc_socket(AF_INET, SOCK_DGRAM, 0);
-
-  if(fd != -1 && libc_sendto(fd, sock->out_buffer, sock->out_len, 0, (struct sockaddr*) &(sock->remote_udp), sizeof(struct sockaddr)) != -1)
+  ssize_t nsend = libc_sendto(simptcp_entity.udp_fd, sock->out_buffer, sock->out_len, 0, (struct sockaddr*) &(sock->remote_udp), sizeof(struct sockaddr));
+  if(nsend != -1 && nsend == sock->out_len)
   {
     sock->simptcp_send_count++;
     ret = 0;
