@@ -259,8 +259,8 @@ typedef struct simptcp_socket_states_funcs {
 /* Fill a struct simptcp_socket with default values */
 int create_simptcp_socket();
 char * simptcp_socket_state_get_str(simptcp_socket_state_funcs *state);
-inline int lock_simptcp_socket(struct simptcp_socket *sock);
-inline int unlock_simptcp_socket(struct simptcp_socket *sock);
+int lock_simptcp_socket(struct simptcp_socket *sock);
+int unlock_simptcp_socket(struct simptcp_socket *sock);
 int is_timeout(struct simptcp_socket * sock);
 int has_active_timer(struct simptcp_socket * sock);
 

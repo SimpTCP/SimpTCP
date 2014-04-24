@@ -141,6 +141,7 @@ int simptcp_check_checksum(char *buffer, int len);
 u_int16_t simptcp_extract_data (char * pdu, void * payload);
 
 void simptcp_print_packet (char * buf);
+void simptcp_lprint_packet (char * buf);
 
 
 

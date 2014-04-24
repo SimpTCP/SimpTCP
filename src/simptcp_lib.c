@@ -308,6 +308,26 @@ int is_timeout(struct simptcp_socket * sock)
 }
 
 
+int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
+{
+#if __DEBUG__
+  printf("function %s called\n", __func__);
+  printf("Send packet (%d bytes):\n", sock->out_len);
+  simptcp_lprint_packet(sock->out_buffer);
+#endif
+
+  int ret = -1;
+  int fd = libc_socket(AF_INET, SOCK_DGRAM, 0);
+
+  if(fd != -1 && libc_sendto(fd, sock->out_buffer, sock->out_len, 0, (struct sockaddr*) &(sock->remote_udp), sizeof(struct sockaddr)) != -1)
+  {
+    sock->simptcp_send_count++;
+    ret = 0;
+  }
+
+  return ret;
+}
+
 /*** socket state dependent functions ***/
 
 
@@ -328,16 +348,35 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
   printf("function %s called\n", __func__);
 #endif
 
+    int ret = -1;
+
     lock_simptcp_socket(sock);
 
+    // le socket est forcement un client
     sock->socket_type = client;
-    sock->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
+    // on met à jour le remote simptcp
     memcpy(&(sock->remote_simptcp), addr, len);
     simptcp_create_packet_syn(sock);
 
+    // il faut créer le remote_udp
+    memset(&(sock->remote_udp), 0, sizeof(struct sockaddr_in));
+    sock->remote_udp.sin_family = AF_INET;
+    sock->remote_udp.sin_port = htons(15556);
+    memcpy(&(sock->remote_udp.sin_addr), &(((struct sockaddr_in*) addr)->sin_addr), sizeof(struct in_addr));
+
+    // on créé le syn et on l'envoie
+    simptcp_create_packet_syn(sock);
+    if(simptcp_socket_send_out_buffer(sock) != -1)
+    {
+      sock->next_ack_num = sock->next_seq_num;
+      start_timer(sock, 1000);
+      sock->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
+      ret = 0;
+    }
+
     unlock_simptcp_socket(sock);
 
-    return 0;
+    return ret;
 }
 
 /*! \fn int closed_simptcp_socket_state_passive_open(struct simptcp_socket* sock, int n)
