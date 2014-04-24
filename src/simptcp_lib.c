@@ -394,7 +394,9 @@ int closed_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n
   lock_simptcp_socket(sock);
 
   sock->socket_type = listening_server;
+  sock->pending_conn_req = 0;
   sock->max_conn_req_backlog = n;
+  sock->new_conn_req = malloc(n*sizeof(struct simptcp_socket*));
   sock->socket_state = &(simptcp_entity.simptcp_socket_states->listen);
 
   unlock_simptcp_socket(sock);
@@ -466,7 +468,6 @@ int closed_simptcp_socket_state_close (struct simptcp_socket* sock)
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
- 
   return ENOTCONN;
 }
 
@@ -482,7 +483,6 @@ int closed_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
   printf("function %s called\n", __func__);
 #endif
   return ENOTCONN;
-
 }
 
 /*! 
@@ -497,7 +497,6 @@ void closed_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* soc
 #if __DEBUG__
     printf("function %s called\n", __func__);
 #endif
-
 }
 
 /**
