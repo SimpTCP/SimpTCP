@@ -107,6 +107,11 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
 
 void * simptcp_entity_handler()
 {
+
+	#if __DEBUG__
+	    printf("function %s called\n", __func__);
+	#endif
+
   /* simptcp receive buffer */
   char* buffer =  simptcp_entity.in_buffer; 
   /* udp remotre SAP from which the packet originates */
@@ -115,42 +120,42 @@ void * simptcp_entity_handler()
   int fd; /* simptcp socket file descriptor */
   struct timeval t0;
 
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
-
   while (1) {
-
-    usleep(10);
-    /* check for a new arriving packet */
+  	usleep(10);
+  	/* check for a new arriving packet */
     simptcp_entity.in_len = libc_recvfrom(simptcp_entity.udp_fd,buffer, 
 				     MAX_SIMPTCP_BUFFER_SIZE,0, 
 				      (struct sockaddr*) &udp_remote, &slen);
 
-    if (simptcp_entity.in_len != -1) {
-#if __DEBUG__
-      printf("************************************************************\n"
-	     "Received packet of size %d on %s:%hu\n",
-	     simptcp_entity.in_len, inet_ntoa(udp_remote.sin_addr),
-	     simptcp_get_dport(buffer));
-#endif
+		if (simptcp_entity.in_len != -1) {
+			#if __DEBUG__
+		  	    printf("************************************************************\n"
+				     "Received packet of size %d on %s:%hu\n",
+				     simptcp_entity.in_len, inet_ntoa(udp_remote.sin_addr),
+				     simptcp_get_dport(buffer));
+			#endif
+
       /* check if corrupted */
       if (!simptcp_check_checksum(buffer,simptcp_entity.in_len)) {
-#if __DEBUG__
-	printf("Dropping corrupted packet\n");
-#endif
-	/* TODO : on pourrait prévoir un memset */
-	continue ;
+				#if __DEBUG__
+					printf("Dropping corrupted packet\n");
+				#endif
+				/* TODO : on pourrait prévoir un memset */
+				continue;
       }
-      else { /* clean simptcp packet */
-#if __DEBUG__
-	simptcp_print_packet(buffer);
-#endif
-	/* Demultiplex packet */
-	  
-	if ((fd=demultiplex_packet(buffer,&udp_remote)) >=0)
-	  /* the packets is destined to an open simptcp socket */
-	  simptcp_entity.simptcp_socket_descriptors[fd]->socket_state->process_simptcp_pdu(simptcp_entity.simptcp_socket_descriptors[fd],buffer,simptcp_entity.in_len);
+      else
+      {
+				#if __DEBUG__
+					simptcp_lprint_packet(buffer);
+				#endif
+				/* Demultiplex packet */
+				fd = demultiplex_packet(buffer,&udp_remote);
+				if (fd >= 0 && fd < simptcp_entity.open_simptcp_sockets)
+				{
+					/* the packets is destined to an open simptcp socket */
+					simptcp_entity.simptcp_socket_descriptors[fd]->socket_state->process_simptcp_pdu(simptcp_entity.simptcp_socket_descriptors[fd],buffer,simptcp_entity.in_len);
+				}
+
       }
     }
     //   else if ((simptcp_entity.in_len ==-1) && (errno != EAGAIN))
@@ -159,16 +164,15 @@ void * simptcp_entity_handler()
     /* check for timeouts */
 
     for (fd=0;fd< MAX_OPEN_SOCK;fd++)
-      {
-	gettimeofday(&t0,NULL);
-	if (((simptcp_entity.simptcp_socket_descriptors[fd]) != NULL) &&
+    {
+			gettimeofday(&t0,NULL);
+			if (((simptcp_entity.simptcp_socket_descriptors[fd]) != NULL) &&
 	    (has_active_timer(simptcp_entity.simptcp_socket_descriptors[fd])) &&
 	    (is_timeout(simptcp_entity.simptcp_socket_descriptors[fd])))
-	  {/* timeout detected on the open socket */
-	    simptcp_entity.simptcp_socket_descriptors[fd]->socket_state->handle_timeout(simptcp_entity.simptcp_socket_descriptors[fd]);
-	  }
-      } 
-
+	  	{/* timeout detected on the open socket */
+	    	simptcp_entity.simptcp_socket_descriptors[fd]->socket_state->handle_timeout(simptcp_entity.simptcp_socket_descriptors[fd]);
+	  	}
+	  } 
   } /* while(1) */
 }
 
