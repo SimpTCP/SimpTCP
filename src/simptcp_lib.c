@@ -307,7 +307,11 @@ int is_timeout(struct simptcp_socket * sock)
 	  ( (sock->timeout.tv_sec == t0.tv_sec) && (sock->timeout.tv_usec < t0.tv_usec)));
 }
 
-
+/*! \fn int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
+ * \brief Envoie sock->out_buffer à sock->remote_udp en passant par la socket udp cd simptcp_entity
+ * \param sock pointeur sur un socket SimTCP
+ * \return 0 si toutes les données ont été envoyées, -1 sinon.
+ */
 int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
 {
 #if __DEBUG__
