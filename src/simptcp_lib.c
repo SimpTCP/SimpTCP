@@ -126,7 +126,10 @@ void init_simptcp_socket(struct simptcp_socket *sock, unsigned int lport)
     sock->simptcp_send_count=0; 
     sock->simptcp_receive_count=0; 
     sock->simptcp_in_errors_count=0; 
-    sock->simptcp_retransmit_count=0; 
+    sock->simptcp_retransmit_count=0;
+
+    /* Init timer rtt */
+    sock->rtt_estimate = 1000; 
     
     pthread_mutex_init(&(sock->mutex_socket), NULL);
     
@@ -331,6 +334,15 @@ int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
   return ret;
 }
 
+int simptcp_socket_resend_out_buffer(struct simptcp_socket *sock)
+{
+#if __DEBUG__
+  printf("function %s called\n", __func__);
+#endif
+  sock->simptcp_retransmit_count++;
+  return simptcp_socket_send_out_buffer(sock);
+}
+
 /*** socket state dependent functions ***/
 
 
@@ -372,7 +384,7 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
     if(simptcp_socket_send_out_buffer(sock) != -1)
     {
       sock->next_ack_num = sock->next_seq_num;
-      start_timer(sock, 1000);
+      start_timer(sock, sock->rtt_estimate);
       sock->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
       ret = 0;
     }
@@ -848,6 +860,13 @@ void synsent_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
   printf("function %s called\n", __func__);
 #endif
 
+  stop_timer(sock);
+
+  if(sock->socket_type == client)
+  {
+    simptcp_socket_resend_out_buffer(sock);
+    start_timer(sock, sock->rtt_estimate);
+  }
 
 }
 
