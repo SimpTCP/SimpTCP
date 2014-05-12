@@ -70,22 +70,22 @@ void simptcp_create_packet_syn(struct simptcp_socket *s)
   s->out_len = SIMPTCP_GHEADER_SIZE;
 }
 
-void simptcp_create_packet_synack(struct simptcp_socket *s, struct simptcp_socket *d)
+void simptcp_create_packet_syn_ack(struct simptcp_socket *d)
 {
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
   simptcp_generic_header h;
-  h.sport = s->local_simptcp.sin_port;
-  h.dport = s->remote_simptcp.sin_port;
-  h.seq_num = s->next_seq_num;
-  h.ack_num = 0;
+  h.sport = d->local_simptcp.sin_port;
+  h.dport = d->remote_simptcp.sin_port;
+  h.seq_num = d->next_seq_num;
+  h.ack_num = d->next_ack_num;
   h.header_len = SIMPTCP_GHEADER_SIZE;
-  h.flags = SYN;
+  h.flags = SYN | ACK;
   h.window_size = SIMPTCP_MAX_SIZE;
   h.total_len = SIMPTCP_GHEADER_SIZE;
-  simptcp_create_packet(s->out_buffer, &h);
-  s->out_len = SIMPTCP_GHEADER_SIZE;
+  simptcp_create_packet(d->out_buffer, &h);
+  d->out_len = SIMPTCP_GHEADER_SIZE;
 }
 
 /*! \fn void simptcp_set_sport(char * buffer, u_int16_t sport)

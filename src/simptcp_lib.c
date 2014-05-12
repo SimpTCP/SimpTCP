@@ -609,10 +609,35 @@ int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-
+  int k =0, ret = -1;
   while(sock->pending_conn_req == 0){}
+  lock_simptcp_socket(sock);
+  struct simptcp_socket* c = sock->new_conn_req[sock->pending_conn_req-1];
+  sock->new_conn_req[sock->pending_conn_req-1] = NULL;
+  sock->pending_conn_req--;
+  unlock_simptcp_socket(sock);
+  simptcp_create_packet_syn_ack(c);
+  simptcp_socket_send_out_buffer(c);
+  do
+    {
+      if(k==5)  //refait un envoi tout les 1000ms
+      {
+        k=0;
+        simptcp_socket_resend_out_buffer(c);
+      }
+      usleep(200000);
+      k++;
+    }while(c->nbr_retransmit <=3 && c->socket_state != &(simptcp_entity.simptcp_socket_states->established));
+    if(c->socket_state == &(simptcp_entity.simptcp_socket_states->established))
+    {
+      ret = 0;
+    }
+    else
+    {
+      errno = ETIMEDOUT;
+    }
 
-  return 0;
+    return ret;
 }
 
 /**
@@ -711,10 +736,14 @@ void listen_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* soc
     c = malloc(sizeof(struct simptcp_socket));
     memcpy(&(c->remote_udp), &(sock->remote_udp), sizeof(struct sockaddr_in));
     memcpy(&(c->remote_simptcp), &(sock->remote_simptcp), sizeof(struct sockaddr_in));
+    memcpy(&(c->local_simptcp), &(sock->local_simptcp), sizeof(struct sockaddr_in));
+    c->next_ack_num = simptcp_get_seq_num(buf)+1;
+    c->next_seq_num = 40;
     lock_simptcp_socket(sock);
     sock->new_conn_req[sock->pending_conn_req] = c;
     sock->pending_conn_req++;
     unlock_simptcp_socket(sock);
+
 
   }
 
