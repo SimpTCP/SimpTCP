@@ -57,6 +57,8 @@ int set_non_blocking(int fd)
 #endif
 }
 
+
+
 /*!
  * \fn int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
  * \brief implemente la fonction de demultiplexage de SimpTCP declenchee a l'arrivee d'un PDU SimpTCP. 
@@ -71,13 +73,11 @@ int set_non_blocking(int fd)
  */
 int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
 {
-  //struct simptcp_socket *sock = NULL;
-  //struct simptcp_socket *new_sock = NULL; 
+  struct simptcp_socket *sock = NULL;
+  struct simptcp_socket *new_sock = NULL; 
   struct sockaddr_in simptcp_remote;
   u_int16_t dport;
-  int i;
-  int ret = -1;
-  //int fd; /* simtcp socket descriptor */
+  int fd; /* simtcp socket descriptor */
   int slen=sizeof(struct sockaddr_in);
 
 #if __DEBUG__
@@ -90,17 +90,62 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
   memcpy(&simptcp_remote, udp_remote, slen);
   simptcp_remote.sin_port = htons(simptcp_get_sport(buffer));
   dport = htons(simptcp_get_dport(buffer));
+ 
+  /* check if the packet is destined for a non-listening socket */
+	/* this is an inefficient way to fetch for open sockets 
+	   could be imporved using the open_sockets_list 
+	   which points to the head of the list of open sockets
+	*/
+  for (fd=0;fd< MAX_OPEN_SOCK;fd++)
+    {
+      if ((sock=simptcp_entity.simptcp_socket_descriptors[fd]) != NULL)
+	{ /* this is an open socket ..*/
+	  if (sock->local_simptcp.sin_port == dport
+	      && sock->remote_simptcp.sin_addr.s_addr == simptcp_remote.sin_addr.s_addr
+	     && sock->remote_simptcp.sin_port == simptcp_remote.sin_port)
+	    { /* this is the fetched socket */
+#if __DEBUG__
+	      printf("Delivering packet to socket fd %u at state %s\n",
+		     fd, simptcp_socket_state_get_str(sock->socket_state));
+#endif
+	      return fd;
+	    } 
+	}
+    }
+   /* now, check if the packet is destined for a listening sock */
+  for (fd=0;fd< MAX_OPEN_SOCK;fd++)
+    {
+      if ((sock=simptcp_entity.simptcp_socket_descriptors[fd]) != NULL)
+	{ 
+	  if ((sock->local_simptcp.sin_port == dport)
+	      && (sock->socket_type == listening_server))
+	    { /* this is the fetched listening socket */
+#if __DEBUG__
+	      printf("Delivering packet to socket fd %u at state %s\n",
+		     fd, simptcp_socket_state_get_str(sock->socket_state));
+#endif
+	      /* for a listening socket an additionnal work is needed :
+		 save the remote udp/simpTCP addresses; they will be used
+		 when processing the received pdu
+	       */	      
+	      lock_simptcp_socket(sock);	      
+	      
+	      memcpy(&(sock->remote_simptcp),&simptcp_remote,slen);
+	      memcpy(&(sock->remote_udp),udp_remote,slen);
+	      unlock_simptcp_socket(sock);    
 
-  for(i=0; i<simptcp_entity.open_simptcp_sockets; i++)
-  {
-  	if(dport == simptcp_entity.simptcp_socket_descriptors[i]->local_simptcp.sin_port)
-  	{
-  		ret = i;
-  	}
-  }
-  /* Pour le spremieres phases, renvoyer le svaleurs qui vous arrangent */
- return ret; 
+	      return fd;
+	    }
+	}
+    }
+  /* No match found */
+#if __DEBUG__
+  printf("No Match found \n");
+#endif
+ return -1; 
 }
+
+
 
 
 /*!
