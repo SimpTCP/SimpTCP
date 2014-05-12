@@ -21,8 +21,7 @@ all: $(EXEC)
 
 # Rules to clean up build dir
 clean:
-#	-rm *.o *.i *.s *~ $(EXEC)
-	-rm *.o  *~ $(EXEC)
+	rm -rf *.o  *~
 
 # Dependencies
 simptcp_packet.c: $(INCSDIR)/simptcp_packet.h \
