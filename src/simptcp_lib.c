@@ -706,15 +706,15 @@ void listen_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* soc
   char flags = simptcp_get_flags(buf);
   struct simptcp_socket *c;
 
-  if((flags & SYN) == SYN && sock->pending_conn_req < sock->max_conn_req_backlog)
+  if(sock->socket_type == listening_server && sock->pending_conn_req < sock->max_conn_req_backlog && (flags & SYN))
   {
     c = malloc(sizeof(struct simptcp_socket));
-    c->socket_type = client;
-    memset(&(c->remote_simptcp), 0, sizeof(struct sockaddr_in));
-    c->remote_simptcp.sin_family = AF_INET;
-    c->remote_simptcp.sin_port = htons(simptcp_get_sport(buf));
-    free(c);
-    printf("sport : %d\n", simptcp_get_sport(buf));
+    memcpy(&(c->remote_udp), &(sock->remote_udp), sizeof(struct sockaddr_in));
+    memcpy(&(c->remote_simptcp), &(sock->remote_simptcp), sizeof(struct sockaddr_in));
+    lock_simptcp_socket(sock);
+    sock->new_conn_req[sock->pending_conn_req] = c;
+    sock->pending_conn_req++;
+    unlock_simptcp_socket(sock);
 
   }
 
