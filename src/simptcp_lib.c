@@ -325,12 +325,13 @@ int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
 
   int ret = -1;
   ssize_t nsend = libc_sendto(simptcp_entity.udp_fd, sock->out_buffer, sock->out_len, 0, (struct sockaddr*) &(sock->remote_udp), sizeof(struct sockaddr));
+  lock_simptcp_socket(sock);
   if(nsend != -1 && nsend == sock->out_len)
   {
     sock->simptcp_send_count++;
     ret = 0;
   }
-
+  unlock_simptcp_socket(sock);
   return ret;
 }
 
@@ -339,7 +340,9 @@ int simptcp_socket_send_syn(struct simptcp_socket *sock)
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
+  lock_simptcp_socket(sock);
   sock->nbr_retransmit = 0;
+  unlock_simptcp_socket(sock);
   simptcp_create_packet_syn(sock);
   return simptcp_socket_send_out_buffer(sock);
 }
@@ -349,8 +352,10 @@ int simptcp_socket_resend_out_buffer(struct simptcp_socket *sock)
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
+  lock_simptcp_socket(sock);
   sock->simptcp_retransmit_count++;
   sock->nbr_retransmit++;
+  unlock_simptcp_socket(sock);
   return simptcp_socket_send_out_buffer(sock);
 }
 
@@ -374,7 +379,7 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
   printf("function %s called\n", __func__);
 #endif
 
-    int ret = -1;
+    int ret = -1, k=0;
 
     lock_simptcp_socket(sock);
 
@@ -391,15 +396,28 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
     memcpy(&(sock->remote_udp.sin_addr), &(((struct sockaddr_in*) addr)->sin_addr), sizeof(struct in_addr));
 
     // on créé le syn et on l'envoie
-    if(simptcp_socket_send_syn(sock) != -1)
+    sock->next_ack_num = sock->next_seq_num + 1;
+    sock->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
+    unlock_simptcp_socket(sock);
+    simptcp_socket_send_out_buffer(sock);
+    do
     {
-      sock->next_ack_num = sock->next_seq_num;
-      start_timer(sock, sock->timer_duration);
-      sock->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
+      if(k==5)  //refait un envoi tout les 1000ms
+      {
+        k=0;
+        simptcp_socket_resend_out_buffer(sock);
+      }
+      usleep(200000);
+      k++;
+    }while(sock->nbr_retransmit <=3 && sock->socket_state != &(simptcp_entity.simptcp_socket_states->established));
+    if(sock->socket_state == &(simptcp_entity.simptcp_socket_states->established))
+    {
       ret = 0;
     }
-
-    unlock_simptcp_socket(sock);
+    else
+    {
+      errno = ETIMEDOUT;
+    }
 
     return ret;
 }
