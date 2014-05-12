@@ -39,7 +39,7 @@ enum{
 enum {
   closed_state=1,
   listen_state=2,
-  syn_sen_statet=3,
+  syn_sen_state=3,
   syn_rcvd_state=4,
   established_state=5,
   fin_wait_1_state=6,

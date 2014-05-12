@@ -128,8 +128,8 @@ void init_simptcp_socket(struct simptcp_socket *sock, unsigned int lport)
     sock->simptcp_in_errors_count=0; 
     sock->simptcp_retransmit_count=0;
 
-    /* Init timer rtt */
-    sock->rtt_estimate = 1000; 
+    /* Init timer value */
+    sock->timer_duration = 1000; 
     
     pthread_mutex_init(&(sock->mutex_socket), NULL);
     
@@ -334,12 +334,23 @@ int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
   return ret;
 }
 
+int simptcp_socket_send_syn(struct simptcp_socket *sock)
+{
+#if __DEBUG__
+  printf("function %s called\n", __func__);
+#endif
+  sock->nbr_retransmit = 0;
+  simptcp_create_packet_syn(sock);
+  return simptcp_socket_send_out_buffer(sock);
+}
+
 int simptcp_socket_resend_out_buffer(struct simptcp_socket *sock)
 {
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
   sock->simptcp_retransmit_count++;
+  sock->nbr_retransmit++;
   return simptcp_socket_send_out_buffer(sock);
 }
 
@@ -380,11 +391,10 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
     memcpy(&(sock->remote_udp.sin_addr), &(((struct sockaddr_in*) addr)->sin_addr), sizeof(struct in_addr));
 
     // on créé le syn et on l'envoie
-    simptcp_create_packet_syn(sock);
-    if(simptcp_socket_send_out_buffer(sock) != -1)
+    if(simptcp_socket_send_syn(sock) != -1)
     {
       sock->next_ack_num = sock->next_seq_num;
-      start_timer(sock, sock->rtt_estimate);
+      start_timer(sock, sock->timer_duration);
       sock->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
       ret = 0;
     }
@@ -581,6 +591,9 @@ int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
+
+  while(sock->pending_conn_req == 0){}
+
   return 0;
 }
 
@@ -671,6 +684,22 @@ void listen_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* soc
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
+
+  char flags = simptcp_get_flags(buf);
+  struct simptcp_socket *c;
+
+  if((flags & SYN) == SYN && sock->pending_conn_req < sock->max_conn_req_backlog)
+  {
+    c = malloc(sizeof(struct simptcp_socket));
+    c->socket_type = client;
+    memset(&(c->remote_simptcp), 0, sizeof(struct sockaddr_in));
+    c->remote_simptcp.sin_family = AF_INET;
+    c->remote_simptcp.sin_port = htons(simptcp_get_sport(buf));
+    free(c);
+    printf("sport : %d\n", simptcp_get_sport(buf));
+
+  }
+
 }
 
 /**
@@ -860,13 +889,16 @@ void synsent_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
   printf("function %s called\n", __func__);
 #endif
 
+  lock_simptcp_socket(sock);
   stop_timer(sock);
 
-  if(sock->socket_type == client)
+  if(sock->socket_type == client && sock->nbr_retransmit <= 5)
   {
     simptcp_socket_resend_out_buffer(sock);
-    start_timer(sock, sock->rtt_estimate);
+    start_timer(sock, sock->timer_duration);
   }
+
+  unlock_simptcp_socket(sock);
 
 }
 

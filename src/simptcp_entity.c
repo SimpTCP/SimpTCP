@@ -75,6 +75,8 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
   //struct simptcp_socket *new_sock = NULL; 
   struct sockaddr_in simptcp_remote;
   u_int16_t dport;
+  int i;
+  int ret = -1;
   //int fd; /* simtcp socket descriptor */
   int slen=sizeof(struct sockaddr_in);
 
@@ -88,9 +90,16 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
   memcpy(&simptcp_remote, udp_remote, slen);
   simptcp_remote.sin_port = htons(simptcp_get_sport(buffer));
   dport = htons(simptcp_get_dport(buffer));
- 
+
+  for(i=0; i<simptcp_entity.open_simptcp_sockets; i++)
+  {
+  	if(dport == simptcp_entity.simptcp_socket_descriptors[i]->local_simptcp.sin_port)
+  	{
+  		ret = i;
+  	}
+  }
   /* Pour le spremieres phases, renvoyer le svaleurs qui vous arrangent */
- return 0 ; 
+ return ret; 
 }
 
 
