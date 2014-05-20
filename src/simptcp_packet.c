@@ -88,6 +88,26 @@ void simptcp_create_packet_syn_ack(struct simptcp_socket *d)
   d->out_len = SIMPTCP_GHEADER_SIZE;
 }
 
+void simptcp_create_packet_ack(struct simptcp_socket *d)
+{
+#if __DEBUG__
+  printf("function %s called\n", __func__);
+#endif
+  simptcp_generic_header h;
+  h.sport = ntohs(d->local_simptcp.sin_port);
+  h.dport = ntohs(d->remote_simptcp.sin_port);
+  h.seq_num = d->next_seq_num;
+  h.ack_num = d->next_ack_num;
+  h.header_len = SIMPTCP_GHEADER_SIZE;
+  h.flags = ACK;
+  h.window_size = SIMPTCP_MAX_SIZE;
+  h.total_len = SIMPTCP_GHEADER_SIZE;
+  simptcp_create_packet(d->out_buffer, &h);
+  d->out_len = SIMPTCP_GHEADER_SIZE;
+
+}
+
+
 /*! \fn void simptcp_set_sport(char * buffer, u_int16_t sport)
  * \brief initialise le champ sport (source port) du PDU SimpTCP a sport
  * \param buffer pointeur sur PDU simptcp 
@@ -267,7 +287,7 @@ void    simptcp_set_total_len   (char *buffer, u_int16_t tlen)
 #if __DEBUG__
   //printf("function %s called\n", __func__);
 #endif  
-((simptcp_generic_header *)buffer)->total_len = htons(tlen);
+((simptcp_generic_header *)buffer)->total_len = (tlen);
 }
 
 
@@ -281,7 +301,7 @@ u_int16_t   simptcp_get_total_len   (const char *buffer)
 #if __DEBUG__
   //printf("function %s called\n", __func__);
 #endif
-  return ntohs(((const simptcp_generic_header  *)buffer)->total_len);
+  return (((const simptcp_generic_header  *)buffer)->total_len);
 }
 
 
@@ -295,7 +315,7 @@ void    simptcp_set_win_size   (char *buffer, u_int16_t size)
 #if __DEBUG__
   //printf("function %s called\n", __func__);
 #endif
-((simptcp_generic_header *)buffer)->window_size = htons(size);
+((simptcp_generic_header *)buffer)->window_size = (size);
 }
 
 
@@ -309,7 +329,7 @@ u_int16_t   simptcp_get_win_size   (const char *buffer)
 #if __DEBUG__
   //printf("function %s called\n", __func__);
 #endif
-  return ntohs(((const simptcp_generic_header  *)buffer)->window_size);
+  return (((const simptcp_generic_header  *)buffer)->window_size);
 }
 
 
@@ -323,7 +343,7 @@ u_int16_t   simptcp_get_checksum   (const char *buffer)
 #if __DEBUG__
   //printf("function %s called\n", __func__);
 #endif
-  return ntohs(((const simptcp_generic_header  *)buffer)->checksum);
+  return (((const simptcp_generic_header  *)buffer)->checksum);
 }
 
 
@@ -354,7 +374,7 @@ void simptcp_add_checksum (char *buffer, int len)
     for (i = 0; i < len / 2; ++i)
 	checksum += buf[i];
     /* add checksum */
-    header->checksum = htons(checksum);
+    header->checksum = (checksum);
 }
 
 
@@ -387,7 +407,7 @@ int simptcp_check_checksum(char *buffer, int len)
 	checksum += buf[i];
     }
     /* check sender and receiver's checksum */
-   return (checksum == ntohs(header->checksum));
+   return (checksum == (header->checksum));
 }
 
 
