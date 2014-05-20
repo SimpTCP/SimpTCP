@@ -58,8 +58,8 @@ void simptcp_create_packet_syn(struct simptcp_socket *s)
   printf("function %s called\n", __func__);
 #endif
   simptcp_generic_header h;
-  h.sport = s->local_simptcp.sin_port;
-  h.dport = s->remote_simptcp.sin_port;
+  h.sport = ntohs(s->local_simptcp.sin_port);
+  h.dport = ntohs(s->remote_simptcp.sin_port);
   h.seq_num = s->next_seq_num;
   h.ack_num = 0;
   h.header_len = SIMPTCP_GHEADER_SIZE;
