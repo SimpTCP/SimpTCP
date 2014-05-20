@@ -923,6 +923,19 @@ void synsent_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* so
 #if __DEBUG__
     printf("function %s called\n", __func__);
 #endif
+      char flags = simptcp_get_flags(buf);
+      u_int16_t seq_num = simptcp_get_seq_num(buf);
+      u_int16_t ack_num = simptcp_get_ack_num(buf);
+    if((flags & SYN) && (flags & ACK) && sock->next_seq_num+1 == ack_num)
+    {
+      lock_simptcp_socket(sock);
+      sock->next_ack_num = seq_num+1;
+      sock->next_seq_num++;
+      sock->socket_state = &(simptcp_entity.simptcp_socket_states->established);
+      unlock_simptcp_socket(sock);
+      simptcp_create_packet_ack(sock);
+      simptcp_socket_send_out_buffer(sock);
+    }
 
 }
 
