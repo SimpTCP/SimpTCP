@@ -30,12 +30,13 @@
  * \param buffer pointeur sur PDU simptcp
  * \param p pointeur sur structure du packet a creer
 */
-void simptcp_create_packet(char *buffer, simptcp_generic_header *p)
+void simptcp_create_packet(struct simptcp_socket *s, simptcp_generic_header *p)
 {
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-
+  s->nbr_retransmit = 0;
+  char* buffer = s->out_buffer;
   simptcp_set_sport(buffer, p->sport);
   simptcp_set_dport(buffer, p->dport);
   simptcp_set_flags(buffer, p->flags);
@@ -48,6 +49,24 @@ void simptcp_create_packet(char *buffer, simptcp_generic_header *p)
 
 }
 
+void simptcp_create_packet_data(struct simptcp_socket *s, const void* data, size_t len)
+{
+#if __DEBUG__
+  printf("function %s called\n", __func__);
+#endif
+  simptcp_generic_header h;
+  h.sport = ntohs(s->local_simptcp.sin_port);
+  h.dport = ntohs(s->remote_simptcp.sin_port);
+  h.seq_num = s->next_seq_num;
+  h.flags = 0;
+  h.header_len = SIMPTCP_GHEADER_SIZE;
+  h.window_size = SIMPTCP_MAX_SIZE;
+  h.total_len = SIMPTCP_GHEADER_SIZE + len;
+  simptcp_create_packet(s, &h);
+  memcpy(s->out_buffer + SIMPTCP_GHEADER_SIZE, data, len);
+  s->out_len = SIMPTCP_GHEADER_SIZE + len;
+
+}
 /*! \fn void simptcp_create_packet_syn(struct simptcp_socket *s)
  * \brief Cree un packet simptcp SYN dans le buffer du socket
  * \param s pointeur sur le socket
@@ -66,7 +85,7 @@ void simptcp_create_packet_syn(struct simptcp_socket *s)
   h.flags = SYN;
   h.window_size = SIMPTCP_MAX_SIZE;
   h.total_len = SIMPTCP_GHEADER_SIZE;
-  simptcp_create_packet(s->out_buffer, &h);
+  simptcp_create_packet(s, &h);
   s->out_len = SIMPTCP_GHEADER_SIZE;
 }
 
@@ -84,7 +103,7 @@ void simptcp_create_packet_syn_ack(struct simptcp_socket *d)
   h.flags = SYN | ACK;
   h.window_size = SIMPTCP_MAX_SIZE;
   h.total_len = SIMPTCP_GHEADER_SIZE;
-  simptcp_create_packet(d->out_buffer, &h);
+  simptcp_create_packet(d, &h);
   d->out_len = SIMPTCP_GHEADER_SIZE;
 }
 
@@ -102,9 +121,8 @@ void simptcp_create_packet_ack(struct simptcp_socket *d)
   h.flags = ACK;
   h.window_size = SIMPTCP_MAX_SIZE;
   h.total_len = SIMPTCP_GHEADER_SIZE;
-  simptcp_create_packet(d->out_buffer, &h);
+  simptcp_create_packet(d, &h);
   d->out_len = SIMPTCP_GHEADER_SIZE;
-
 }
 
 
