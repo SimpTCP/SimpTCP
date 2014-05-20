@@ -762,11 +762,14 @@ void listen_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* soc
     {
       c = sock->new_conn_req[i];
       if(c->socket_state == &(simptcp_entity.simptcp_socket_states->synsent) && 
-         c->remote_simptcp.sin_addr == sock->remote_simptcp.sin_addr &&
-         c->remote_simptcp.sin_port == sock->remote_simptcp.sin_addr &&
-         c->next_seq_num+1 == simptcp_get_ack_num(buff))
+         c->remote_simptcp.sin_addr.s_addr == sock->remote_simptcp.sin_addr.s_addr &&
+         c->remote_simptcp.sin_port == sock->remote_simptcp.sin_port &&
+         c->next_seq_num+1 == simptcp_get_ack_num(buf))
       {
-        printf("YOUHOU\n");
+        c->next_ack_num = simptcp_get_seq_num(buf)+1;
+        c->next_seq_num++;
+        c->socket_state = &(simptcp_entity.simptcp_socket_states->established);
+        printf("New client etablished!\n");
         break;
       }
     }
