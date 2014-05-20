@@ -76,8 +76,8 @@ void simptcp_create_packet_syn_ack(struct simptcp_socket *d)
   printf("function %s called\n", __func__);
 #endif
   simptcp_generic_header h;
-  h.sport = d->local_simptcp.sin_port;
-  h.dport = d->remote_simptcp.sin_port;
+  h.sport = ntohs(d->local_simptcp.sin_port);
+  h.dport = ntohs(d->remote_simptcp.sin_port);
   h.seq_num = d->next_seq_num;
   h.ack_num = d->next_ack_num;
   h.header_len = SIMPTCP_GHEADER_SIZE;

@@ -610,14 +610,14 @@ int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
   printf("function %s called\n", __func__);
 #endif
   int k =0, ret = -1;
+
+  // on attend qu'un client soit en attente
   while(sock->pending_conn_req == 0){}
-  lock_simptcp_socket(sock);
+
   struct simptcp_socket* c = sock->new_conn_req[sock->pending_conn_req-1];
-  sock->new_conn_req[sock->pending_conn_req-1] = NULL;
-  sock->pending_conn_req--;
-  unlock_simptcp_socket(sock);
   simptcp_create_packet_syn_ack(c);
   simptcp_socket_send_out_buffer(c);
+  c->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
   do
     {
       if(k==5)  //refait un envoi tout les 1000ms
@@ -627,10 +627,15 @@ int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
       }
       usleep(200000);
       k++;
-    }while(c->nbr_retransmit <=3 && c->socket_state != &(simptcp_entity.simptcp_socket_states->established));
+    } while(c->nbr_retransmit <=3 && c->socket_state != &(simptcp_entity.simptcp_socket_states->established));
+
     if(c->socket_state == &(simptcp_entity.simptcp_socket_states->established))
     {
       ret = 0;
+      lock_simptcp_socket(sock);
+      sock->new_conn_req[sock->pending_conn_req-1] = NULL;
+      sock->pending_conn_req--;
+      unlock_simptcp_socket(sock);
     }
     else
     {
