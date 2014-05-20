@@ -410,6 +410,7 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
       usleep(200000);
       k++;
     }while(sock->nbr_retransmit <=3 && sock->socket_state != &(simptcp_entity.simptcp_socket_states->established));
+    
     if(sock->socket_state == &(simptcp_entity.simptcp_socket_states->established))
     {
       ret = 0;
@@ -735,7 +736,9 @@ void listen_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* soc
 
   char flags = simptcp_get_flags(buf);
   struct simptcp_socket *c;
+  int i;
 
+  // on a un syn (ouverture de connexion)
   if(sock->socket_type == listening_server && sock->pending_conn_req < sock->max_conn_req_backlog && (flags & SYN))
   {
     c = malloc(sizeof(struct simptcp_socket));
@@ -744,11 +747,29 @@ void listen_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* soc
     memcpy(&(c->local_simptcp), &(sock->local_simptcp), sizeof(struct sockaddr_in));
     c->next_ack_num = simptcp_get_seq_num(buf)+1;
     c->next_seq_num = 40;
+    c->socket_type = client;
     lock_simptcp_socket(sock);
     sock->new_conn_req[sock->pending_conn_req] = c;
     sock->pending_conn_req++;
     unlock_simptcp_socket(sock);
-
+  }
+  else if(sock->socket_type == listening_server && (flags & ACK))
+  {
+    // je veux retrouver le bon client dans les new_conn_req
+    // il faut vérifier le numéro d'acquittement
+    // il faut mettre le client comme etablished
+    for(i=0; i<sock->pending_conn_req; i++)
+    {
+      c = sock->new_conn_req[i];
+      if(c->socket_state == &(simptcp_entity.simptcp_socket_states->synsent) && 
+         c->remote_simptcp.sin_addr == sock->remote_simptcp.sin_addr &&
+         c->remote_simptcp.sin_port == sock->remote_simptcp.sin_addr &&
+         c->next_seq_num+1 == simptcp_get_ack_num(buff))
+      {
+        printf("YOUHOU\n");
+        break;
+      }
+    }
 
   }
 
