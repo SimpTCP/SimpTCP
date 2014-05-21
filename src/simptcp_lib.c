@@ -115,7 +115,6 @@ void init_simptcp_socket(struct simptcp_socket *sock, unsigned int lport)
     memset(sock->out_buffer, 0, SIMPTCP_SOCKET_MAX_BUFFER_SIZE);   
     sock->out_len=0;
     sock->nbr_retransmit=0;
-    sock->timer_duration=1500;
     /* protocol entity receiving side */
     sock->socket_state_receiver=-1;
     sock->next_ack_num=0;
@@ -399,17 +398,12 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
     sock->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
     unlock_simptcp_socket(sock);
     simptcp_socket_send_out_buffer(sock);
-    do
-    {
-      if(k==5)  //refait un envoi tout les 1000ms
-      {
-        k=0;
-        simptcp_socket_resend_out_buffer(sock);
-      }
-      usleep(200000);
-      k++;
-    }while(sock->nbr_retransmit <=3 && sock->socket_state != &(simptcp_entity.simptcp_socket_states->established));
-    
+
+    start_timer(sock, sock->timer_duration);
+
+    // wait until syn ack received
+    while(sock->nbr_retransmit <= 3 &&  sock->socket_state != &(simptcp_entity.simptcp_socket_states->established)){}
+ 
     if(sock->socket_state == &(simptcp_entity.simptcp_socket_states->established))
     {
       ret = 0;
@@ -933,6 +927,7 @@ void synsent_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* so
     if((flags & SYN) && (flags & ACK) && sock->next_seq_num+1 == ack_num)
     {
       lock_simptcp_socket(sock);
+      stop_timer(sock);
       sock->next_ack_num = seq_num+1;
       sock->next_seq_num++;
       sock->socket_state = &(simptcp_entity.simptcp_socket_states->established);
@@ -961,7 +956,9 @@ void synsent_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
   lock_simptcp_socket(sock);
   stop_timer(sock);
   unlock_simptcp_socket(sock);
-  if(sock->socket_type == client && sock->nbr_retransmit <= 5)
+
+  // resent out buffer until socked is not etablished
+  if(sock->socket_type == client && sock->nbr_retransmit <= 3 && sock->socket_state != &(simptcp_entity.simptcp_socket_states->established))
   {
     simptcp_socket_resend_out_buffer(sock);
     start_timer(sock, sock->timer_duration);
