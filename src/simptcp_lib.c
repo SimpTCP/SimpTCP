@@ -377,7 +377,7 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
   printf("function %s called\n", __func__);
 #endif
 
-    int ret = -1, k=0;
+    int ret = -1;
 
     lock_simptcp_socket(sock);
 
@@ -603,7 +603,7 @@ int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  int k =0, ret = -1;
+  int ret = -1;
 
   // on attend qu'un client soit en attente
   while(sock->pending_conn_req == 0){}
@@ -615,32 +615,25 @@ int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
   unlock_simptcp_socket(sock);
   simptcp_socket_send_out_buffer(c);
 
-  do
-    {
-      if(k==5)  //refait un envoi tout les 1000ms
-      {
-        k=0;
-        simptcp_socket_resend_out_buffer(c);
-      }
-      usleep(200000);
-      k++;
-    } while(c->nbr_retransmit <=3 && c->socket_state != &(simptcp_entity.simptcp_socket_states->established));
+  start_timer(sock, sock->timer_duration);
 
-    if(c->socket_state == &(simptcp_entity.simptcp_socket_states->established))
-    {
-      ret = 0;
-      lock_simptcp_socket(sock);
-      sock->new_conn_req[sock->pending_conn_req-1] = NULL;
-      sock->pending_conn_req--;
-      unlock_simptcp_socket(sock);
-      memcpy(addr, &(c->remote_udp), sizeof(struct sockaddr));
-    }
-    else
-    {
-      errno = ETIMEDOUT;
-    }
+  while(c->nbr_retransmit <= 3 && c->socket_state != &(simptcp_entity.simptcp_socket_states->established)) {}
 
-    return ret;
+  if(c->socket_state == &(simptcp_entity.simptcp_socket_states->established))
+  {
+    ret = 0;
+    lock_simptcp_socket(sock);
+    sock->new_conn_req[sock->pending_conn_req-1] = NULL;
+    sock->pending_conn_req--;
+    unlock_simptcp_socket(sock);
+    memcpy(addr, &(c->remote_udp), sizeof(struct sockaddr));
+  }
+  else
+  {
+    errno = ETIMEDOUT;
+  }
+
+  return ret;
 }
 
 /**
@@ -1171,6 +1164,19 @@ void synrcvd_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 #if __DEBUG__
     printf("function %s called\n", __func__);
 #endif
+
+  lock_simptcp_socket(sock);
+  stop_timer(sock);
+  unlock_simptcp_socket(sock);
+
+  struct simptcp_socket *c = sock->new_conn_req[sock->pending_conn_req-1];
+  // resent out buffer until socked is not etablished
+  if(sock->socket_type == listening_server && c != NULL && c->socket_type == client && c->nbr_retransmit <= 3 && c->socket_state == &(simptcp_entity.simptcp_socket_states->synsent))
+  {
+    simptcp_socket_resend_out_buffer(c);
+    start_timer(sock, sock->timer_duration);
+  }
+
 }
 
 
