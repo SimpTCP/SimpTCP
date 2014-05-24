@@ -21,7 +21,7 @@
 #include <simptcp_entity.h>
 #include "simptcp_func_var.c"    /* for socket related functions' prototypes */
 #include <term_colors.h>        /* for color macros */
-#define __PREFIX__              "[" COLOR("SIMPTCP_LIB", BRIGHT_YELLOW) " ] "
+#define __PREFIX__              "[" COLOR("SIMPTCP_LIB", BRIGHT_RED) " ] "
 #include <term_io.h>
 
 #ifndef __DEBUG__
