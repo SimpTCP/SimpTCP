@@ -34,31 +34,56 @@
 * \param state correspond typiquement au champ socket_state de la structure #simptcp_socket qui indirectement identifie l'etat dans lequel le socket se trouve et les fonctions qu'il peut appeler depuis cet etat
 * \return chaine de carateres correspondant a l'etat dans lequel se trouve le socket simpTCP
 */
-char *  simptcp_socket_state_get_str(simptcp_socket_state_funcs * state) {
+char *  simptcp_socket_state_get_str(simptcp_socket_state_funcs * state)
+{
     if (state == &  simptcp_socket_states.closed)
-	return "CLOSED";
+    {
+            return "CLOSED";
+    }
     else if (state == & simptcp_socket_states.listen)
-	return "LISTEN";
+    {
+        return "LISTEN";
+    }
     else if (state == & simptcp_socket_states.synsent)
-	return "SYNSENT";
+    {
+        return "SYNSENT";
+    }
     else if (state == & simptcp_socket_states.synrcvd)
-	return "SYNRCVD";
+	{
+        return "SYNRCVD";
+    }
     else if (state == & simptcp_socket_states.established)
-	return "ESTABLISHED";
+	{
+        return "ESTABLISHED";
+    }
     else if (state == & simptcp_socket_states.closewait)
-	return "CLOSEWAIT";
+	{
+        return "CLOSEWAIT";
+    }
     else if (state == & simptcp_socket_states.finwait1)
-	return "FINWAIT1";
+    {
+        return "FINWAIT1";
+    }
     else if (state == & simptcp_socket_states.finwait2)
-	return "FINWAIT2";
+	{
+        return "FINWAIT2";
+    }
     else if (state == & simptcp_socket_states.closing)
-	return "CLOSING";
+	{
+        return "CLOSING";
+    }
     else if (state == & simptcp_socket_states.lastack)
-	return "LASTACK";
+	{
+        return "LASTACK";
+    }
     else if (state == & simptcp_socket_states.timewait)
-	return "TIMEWAIT";
+	{
+        return "TIMEWAIT";
+    }
     else
-	assert(0);
+    {
+        assert(0);
+    }
 }
 
 /**
@@ -68,12 +93,9 @@ char *  simptcp_socket_state_get_str(simptcp_socket_state_funcs * state) {
  */
 unsigned int get_initial_seq_num()
 {
-  unsigned int init_seq_num=15; 
-  CALLED(__func__);
-
-    return init_seq_num;
+    CALLED(__func__);
+    return 15;
 }
-
 
 /*!
 * \brief Initialise les champs de la structure #simptcp_socket
@@ -82,14 +104,12 @@ unsigned int get_initial_seq_num()
 */
 void init_simptcp_socket(struct simptcp_socket *sock, unsigned int lport)
 {
-
-  CALLED(__func__);
-
+    CALLED(__func__);
     assert(sock != NULL);
+
     lock_simptcp_socket(sock);
 
     /* Initialization code */
-    
     sock->socket_type = unknown;
     sock->new_conn_req=NULL;
     sock->pending_conn_req=0;
@@ -99,38 +119,33 @@ void init_simptcp_socket(struct simptcp_socket *sock, unsigned int lport)
     sock->local_simptcp.sin_family = AF_INET;
     sock->local_simptcp.sin_addr.s_addr = htonl(INADDR_ANY);
     sock->local_simptcp.sin_port = lport;
-
     memset(&(sock->remote_simptcp), 0, sizeof (struct sockaddr));
-    
-    
+
     sock->socket_state = &(simptcp_entity.simptcp_socket_states->closed);
 
     /* protocol entity sending side */
-    sock->socket_state_sender=-1; 
-    sock->next_seq_num=get_initial_seq_num();
+    sock->socket_state_sender = -1; 
+    sock->next_seq_num = get_initial_seq_num();
     memset(sock->out_buffer, 0, SIMPTCP_SOCKET_MAX_BUFFER_SIZE);   
-    sock->out_len=0;
-    sock->nbr_retransmit=0;
+    sock->out_len = 0;
+    sock->nbr_retransmit = 0;
+
     /* protocol entity receiving side */
-    sock->socket_state_receiver=-1;
-    sock->next_ack_num=0;
+    sock->socket_state_receiver = -1;
+    sock->next_ack_num = 0;
     memset(sock->in_buffer, 0, SIMPTCP_SOCKET_MAX_BUFFER_SIZE);   
-    sock->in_len=0;
+    sock->in_len = 0;
     
     /* MIB statistics initialisation  */
-    sock->simptcp_send_count=0; 
-    sock->simptcp_receive_count=0; 
-    sock->simptcp_in_errors_count=0; 
-    sock->simptcp_retransmit_count=0;
+    sock->simptcp_send_count = 0; 
+    sock->simptcp_receive_count = 0; 
+    sock->simptcp_in_errors_count = 0; 
+    sock->simptcp_retransmit_count = 0;
 
     /* Init timer value */
     sock->timer_duration = 1000; 
-    
     pthread_mutex_init(&(sock->mutex_socket), NULL);
-    
-    /* Add Optional field initialisations */
     unlock_simptcp_socket(sock);
-
 }
 
 
@@ -143,30 +158,33 @@ void init_simptcp_socket(struct simptcp_socket *sock, unsigned int lport)
 */
 int create_simptcp_socket()
 {
-  int fd;
+    CALLED(__func__);
+    int fd;
 
-  /* get a free simptcp socket descriptor */
-  for (fd=0;fd< MAX_OPEN_SOCK;fd++) {
-    if ((simptcp_entity.simptcp_socket_descriptors[fd]) == NULL){ 
-      /* this is a free descriptor */
-      /* Allocating memory for the new simptcp_socket */
-      simptcp_entity.simptcp_socket_descriptors[fd] = 
-	(struct simptcp_socket *) malloc(sizeof(struct simptcp_socket));
-      if (!simptcp_entity.simptcp_socket_descriptors[fd]) {
-	return -ENOMEM;
-      }
-      /* initialize the simptcp socket control block with
-	 local port number set to 15000+fd */
-      init_simptcp_socket(simptcp_entity.simptcp_socket_descriptors[fd],15000+fd);
-      simptcp_entity.open_simptcp_sockets++;
+    /* get a free simptcp socket descriptor */
+    for (fd=0;fd< MAX_OPEN_SOCK;fd++)
+    {
+        if ((simptcp_entity.simptcp_socket_descriptors[fd]) == NULL)
+        { 
+            /* this is a free descriptor */
+            /* Allocating memory for the new simptcp_socket */
+            simptcp_entity.simptcp_socket_descriptors[fd] =  (struct simptcp_socket *) malloc(sizeof(struct simptcp_socket));
+            if (!simptcp_entity.simptcp_socket_descriptors[fd])
+            {
+                return -ENOMEM;
+            }
+
+            /* initialize the simptcp socket control block with local port number set to 15000+fd */
+            init_simptcp_socket(simptcp_entity.simptcp_socket_descriptors[fd],15000+fd);
+            simptcp_entity.open_simptcp_sockets++;
       
-      /* return the socket descriptor */
-      return fd;
-    }
-  } /* for */
-  /* The maximum number of open simptcp
-     socket reached  */
-  return -ENFILE; 
+            /* return the socket descriptor */
+            return fd;
+        }
+    } /* for */
+
+    /* The maximum number of open simptcp socket reached  */
+    return -ENFILE; 
 }
 
 /*! \fn void print_simptcp_socket(struct simptcp_socket *sock)
@@ -176,29 +194,29 @@ int create_simptcp_socket()
 */
 void print_simptcp_socket(struct simptcp_socket *sock)
 {
-    printf("----------------------------------------\n");
-    printf("local simptcp address: %s:%hu \n",inet_ntoa(sock->local_simptcp.sin_addr),ntohs(sock->local_simptcp.sin_port));
-    printf("remote simptcp address: %s:%hu \n",inet_ntoa(sock->remote_simptcp.sin_addr),ntohs(sock->remote_simptcp.sin_port));   
-    printf("socket type      : %d\n", sock->socket_type);
-    printf("socket state: %s\n",simptcp_socket_state_get_str(sock->socket_state) );
+    DPRINTF("----------------------------------------\n");
+    DPRINTF("local simptcp address: %s:%hu \n",inet_ntoa(sock->local_simptcp.sin_addr),ntohs(sock->local_simptcp.sin_port));
+    DPRINTF("remote simptcp address: %s:%hu \n",inet_ntoa(sock->remote_simptcp.sin_addr),ntohs(sock->remote_simptcp.sin_port));   
+    DPRINTF("socket type      : %d\n", sock->socket_type);
+    DPRINTF("socket state: %s\n",simptcp_socket_state_get_str(sock->socket_state) );
     if (sock->socket_type == listening_server)
-      printf("pending connections : %d\n", sock->pending_conn_req);
-    printf("sending side \n");
-    printf("sender state       : %d\n", sock->socket_state_sender);
-    printf("transmit  buffer occupation : %d\n", sock->out_len);
-    printf("next sequence number : %u\n", sock->next_seq_num);
-    printf("retransmit number : %u\n", sock->nbr_retransmit);
-
-    printf("Receiving side \n");
-    printf("receiver state       : %d\n", sock->socket_state_receiver);
-    printf("Receive  buffer occupation : %d\n", sock->in_len);
-    printf("next ack number : %u\n", sock->next_ack_num);
-
-    printf("send count       : %lu\n", sock->simptcp_send_count);
-    printf("receive count       : %lu\n", sock->simptcp_receive_count);
-    printf("receive error count       : %lu\n", sock->simptcp_in_errors_count);
-    printf("retransmit count       : %lu\n", sock->simptcp_retransmit_count);
-    printf("----------------------------------------\n");
+    {
+        DPRINTF("pending connections : %d\n", sock->pending_conn_req);
+    }
+    DPRINTF("sending side \n");
+    DPRINTF("sender state       : %d\n", sock->socket_state_sender);
+    DPRINTF("transmit  buffer occupation : %d\n", sock->out_len);
+    DPRINTF("next sequence number : %u\n", sock->next_seq_num);
+    DPRINTF("retransmit number : %u\n", sock->nbr_retransmit);
+    DPRINTF("Receiving side \n");
+    DPRINTF("receiver state       : %d\n", sock->socket_state_receiver);
+    DPRINTF("Receive  buffer occupation : %d\n", sock->in_len);
+    DPRINTF("next ack number : %u\n", sock->next_ack_num);
+    DPRINTF("send count       : %lu\n", sock->simptcp_send_count);
+    DPRINTF("receive count       : %lu\n", sock->simptcp_receive_count);
+    DPRINTF("receive error count       : %lu\n", sock->simptcp_in_errors_count);
+    DPRINTF("retransmit count       : %lu\n", sock->simptcp_retransmit_count);
+    DPRINTF("----------------------------------------\n");
 }
 
 
@@ -214,11 +232,11 @@ void print_simptcp_socket(struct simptcp_socket *sock)
 */
 int lock_simptcp_socket(struct simptcp_socket *sock)
 {
-  CALLED(__func__); 
-
+    CALLED(__func__); 
     if (!sock)
+    {
         return -1;
-
+    }
     return pthread_mutex_lock(&(sock->mutex_socket));
 }
 
@@ -232,11 +250,11 @@ int lock_simptcp_socket(struct simptcp_socket *sock)
 */
 int unlock_simptcp_socket(struct simptcp_socket *sock)
 {
-  CALLED(__func__); 
-
+    CALLED(__func__);
     if (!sock)
+    {
         return -1;
-
+    }
     return pthread_mutex_unlock(&(sock->mutex_socket));
 }
 
@@ -247,15 +265,12 @@ int unlock_simptcp_socket(struct simptcp_socket *sock)
 */
 void start_timer(struct simptcp_socket * sock, int duration)
 {
-  struct timeval t0;
-  CALLED(__func__);
-
-  assert(sock!=NULL);
-  
-  gettimeofday(&t0,NULL);
-  
-  sock->timeout.tv_sec=t0.tv_sec + (duration/1000);
-  sock->timeout.tv_usec=t0.tv_usec + (duration %1000)*1000;  
+    CALLED(__func__);
+    struct timeval t0;
+    assert(sock!=NULL);
+    gettimeofday(&t0,NULL);
+    sock->timeout.tv_sec=t0.tv_sec + (duration/1000);
+    sock->timeout.tv_usec=t0.tv_usec + (duration %1000)*1000;  
 }
 
 /*! \fn void stop_timer(struct simptcp_socket * sock)
@@ -264,10 +279,10 @@ void start_timer(struct simptcp_socket * sock, int duration)
  */
 void stop_timer(struct simptcp_socket * sock)
 {
-  CALLED(__func__);
-  assert(sock!=NULL);
-  sock->timeout.tv_sec=0;
-  sock->timeout.tv_usec=0; 
+    CALLED(__func__);
+    assert(sock!=NULL);
+    sock->timeout.tv_sec=0;
+    sock->timeout.tv_usec=0; 
 }
 
 /*! \fn int has_active_timer(struct simptcp_socket * sock)
@@ -277,7 +292,7 @@ void stop_timer(struct simptcp_socket * sock)
  */
 int has_active_timer(struct simptcp_socket * sock)
 {
-  return (sock->timeout.tv_sec!=0) || (sock->timeout.tv_usec!=0);
+    return (sock->timeout.tv_sec!=0) || (sock->timeout.tv_usec!=0);
 }
 
 /*! \fn int is_timeout(struct simptcp_socket * sock)
@@ -287,15 +302,12 @@ int has_active_timer(struct simptcp_socket * sock)
  */
 int is_timeout(struct simptcp_socket * sock)
 {
-  struct timeval t0;
-
-  assert(sock!=NULL);
-  /* make sure that the timer is launched */
-  assert(has_active_timer(sock));
-  
-  gettimeofday(&t0,NULL);
-  return ((sock->timeout.tv_sec < t0.tv_sec) || 
-	  ( (sock->timeout.tv_sec == t0.tv_sec) && (sock->timeout.tv_usec < t0.tv_usec)));
+    struct timeval t0;
+    assert(sock!=NULL);
+    /* make sure that the timer is launched */
+    assert(has_active_timer(sock));
+    gettimeofday(&t0,NULL);
+    return ((sock->timeout.tv_sec < t0.tv_sec) ||  ((sock->timeout.tv_sec == t0.tv_sec) && (sock->timeout.tv_usec < t0.tv_usec)));
 }
 
 /*! \fn int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
@@ -305,20 +317,20 @@ int is_timeout(struct simptcp_socket * sock)
  */
 int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
 {
-  CALLED(__func__);
-  DPRINTF("Send packed (%d bytes) : \n", sock->out_len);
-  simptcp_lprint_packet(sock->out_buffer);
+    CALLED(__func__);
+    DPRINTF("Send packed (%d bytes) : \n", sock->out_len);
+    simptcp_lprint_packet(sock->out_buffer);
 
-  int ret = -1;
-  ssize_t nsend = libc_sendto(simptcp_entity.udp_fd, sock->out_buffer, sock->out_len, 0, (struct sockaddr*) &(sock->remote_udp), sizeof(struct sockaddr));
-  lock_simptcp_socket(sock);
-  if(nsend != -1 && nsend == sock->out_len)
-  {
-    sock->simptcp_send_count++;
-    ret = 0;
-  }
-  unlock_simptcp_socket(sock);
-  return ret;
+    int ret = -1;
+    ssize_t nsend = libc_sendto(simptcp_entity.udp_fd, sock->out_buffer, sock->out_len, 0, (struct sockaddr*) &(sock->remote_udp), sizeof(struct sockaddr));
+    lock_simptcp_socket(sock);
+    if(nsend != -1 && nsend == sock->out_len)
+    {
+        sock->simptcp_send_count++;
+        ret = 0;
+    }
+    unlock_simptcp_socket(sock);
+    return ret;
 }
 
 /*! \fn int simptcp_socket_resend_out_buffer(struct simptcp_socket* sock)
@@ -328,12 +340,12 @@ int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
  */
 int simptcp_socket_resend_out_buffer(struct simptcp_socket *sock)
 {
-  CALLED(__func__);
-  lock_simptcp_socket(sock);
-  sock->simptcp_retransmit_count++;
-  sock->nbr_retransmit++;
-  unlock_simptcp_socket(sock);
-  return simptcp_socket_send_out_buffer(sock);
+    CALLED(__func__);
+    lock_simptcp_socket(sock);
+    sock->simptcp_retransmit_count++;
+    sock->nbr_retransmit++;
+    unlock_simptcp_socket(sock);
+    return simptcp_socket_send_out_buffer(sock);
 }
 
 /*! \fn int simptcp_socket_send_syn(struct simptcp_socket* sock)
@@ -343,11 +355,11 @@ int simptcp_socket_resend_out_buffer(struct simptcp_socket *sock)
  */
 int simptcp_socket_send_syn(struct simptcp_socket *sock)
 {
-  CALLED(__func__);
-  lock_simptcp_socket(sock);
-  simptcp_create_packet_syn(sock);
-  unlock_simptcp_socket(sock);
-  return simptcp_socket_send_out_buffer(sock);
+    CALLED(__func__);
+    lock_simptcp_socket(sock);
+    simptcp_create_packet_syn(sock);
+    unlock_simptcp_socket(sock);
+    return simptcp_socket_send_out_buffer(sock);
 }
 
 /*** socket state dependent functions ***/
@@ -366,10 +378,9 @@ int simptcp_socket_send_syn(struct simptcp_socket *sock)
  */
 int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struct sockaddr* addr, socklen_t len) 
 {
-  CALLED(__func__);
+    CALLED(__func__);
 
     int ret = -1;
-
     lock_simptcp_socket(sock);
 
     // le socket est forcement un client
@@ -397,11 +408,11 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
  
     if(sock->socket_state == &(simptcp_entity.simptcp_socket_states->established))
     {
-      ret = 0;
+        ret = 0;
     }
     else
     {
-      errno = ETIMEDOUT;
+        errno = ETIMEDOUT;
     }
 
     return ret;
@@ -415,19 +426,17 @@ int closed_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
  */
 int closed_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 { 
-  CALLED(__func__);
+    CALLED(__func__);
 
-  lock_simptcp_socket(sock);
+    lock_simptcp_socket(sock);
+    sock->socket_type = listening_server;
+    sock->pending_conn_req = 0;
+    sock->max_conn_req_backlog = n;
+    sock->new_conn_req = malloc(n*sizeof(struct simptcp_socket*));
+    sock->socket_state = &(simptcp_entity.simptcp_socket_states->listen);
+    unlock_simptcp_socket(sock);
 
-  sock->socket_type = listening_server;
-  sock->pending_conn_req = 0;
-  sock->max_conn_req_backlog = n;
-  sock->new_conn_req = malloc(n*sizeof(struct simptcp_socket*));
-  sock->socket_state = &(simptcp_entity.simptcp_socket_states->listen);
-
-  unlock_simptcp_socket(sock);
-  
-  return 0;
+    return 0;
 }
 
 /*! \fn int closed_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
@@ -439,8 +448,8 @@ int closed_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n
  */
 int closed_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  CALLED(__func__);
-  return ENOTCONN;
+    CALLED(__func__);
+    return ENOTCONN;
 }
 
 
@@ -454,8 +463,8 @@ int closed_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
  */
 ssize_t closed_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-  CALLED(__func__);
-  return ENOTCONN;
+    CALLED(__func__);
+    return ENOTCONN;
 }
 
 
@@ -469,8 +478,8 @@ ssize_t closed_simptcp_socket_state_send (struct simptcp_socket* sock, const voi
  */
 ssize_t closed_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  CALLED(__func__);
-  return ENOTCONN;
+    CALLED(__func__);
+    return ENOTCONN;
 }
 
 /**
@@ -484,8 +493,8 @@ ssize_t closed_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf
  */
 int closed_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  CALLED(__func__);
-  return ENOTCONN;
+    CALLED(__func__);
+    return ENOTCONN;
 }
 
 /*! \fn  int closed_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
@@ -496,8 +505,8 @@ int closed_simptcp_socket_state_close (struct simptcp_socket* sock)
  */
 int closed_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  CALLED(__func__);
-  return ENOTCONN;
+    CALLED(__func__);
+    return ENOTCONN;
 }
 
 /*! 
@@ -509,7 +518,7 @@ int closed_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
  */
 void closed_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-  CALLED(__func__);
+    CALLED(__func__);
 }
 
 /**
@@ -522,7 +531,7 @@ void closed_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* soc
  */
 void closed_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-  CALLED(__func__);
+    CALLED(__func__);
 }
 
 
@@ -539,7 +548,7 @@ void closed_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
  */
 int listen_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struct sockaddr* addr, socklen_t len) 
 {
-  CALLED(__func__);
+    CALLED(__func__);
     return -1;  
 }
 
@@ -554,7 +563,7 @@ int listen_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struc
  */
 int listen_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  CALLED(__func__);
+    CALLED(__func__);
     return -1;
 }
 
@@ -570,38 +579,38 @@ int listen_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n
  */
 int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  CALLED(__func__);
-  int ret = -1;
+    CALLED(__func__);
+    int ret = -1;
 
-  // on attend qu'un client soit en attente
-  while(sock->pending_conn_req == 0){}
-  lock_simptcp_socket(sock);
-  struct simptcp_socket* c = sock->new_conn_req[sock->pending_conn_req-1];
-  simptcp_create_packet_syn_ack(c);
-  c->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
-  sock->socket_state = &(simptcp_entity.simptcp_socket_states->synrcvd);
-  unlock_simptcp_socket(sock);
-  simptcp_socket_send_out_buffer(c);
-
-  start_timer(sock, sock->timer_duration);
-
-  while(c->nbr_retransmit <= 3 && c->socket_state != &(simptcp_entity.simptcp_socket_states->established)) {}
-
-  if(c->socket_state == &(simptcp_entity.simptcp_socket_states->established))
-  {
-    ret = 0;
+    // on attend qu'un client soit en attente
+    while(sock->pending_conn_req == 0){}
     lock_simptcp_socket(sock);
-    sock->new_conn_req[sock->pending_conn_req-1] = NULL;
-    sock->pending_conn_req--;
+    struct simptcp_socket* c = sock->new_conn_req[sock->pending_conn_req-1];
+    simptcp_create_packet_syn_ack(c);
+    c->socket_state = &(simptcp_entity.simptcp_socket_states->synsent);
+    sock->socket_state = &(simptcp_entity.simptcp_socket_states->synrcvd);
     unlock_simptcp_socket(sock);
-    memcpy(addr, &(c->remote_udp), sizeof(struct sockaddr));
-  }
-  else
-  {
-    errno = ETIMEDOUT;
-  }
+    simptcp_socket_send_out_buffer(c);
 
-  return ret;
+    start_timer(sock, sock->timer_duration);
+
+    while(c->nbr_retransmit <= 3 && c->socket_state != &(simptcp_entity.simptcp_socket_states->established)) {}
+
+    if(c->socket_state == &(simptcp_entity.simptcp_socket_states->established))
+    {
+        ret = 0;
+        lock_simptcp_socket(sock);
+        sock->new_conn_req[sock->pending_conn_req-1] = NULL;
+        sock->pending_conn_req--;
+        unlock_simptcp_socket(sock);
+        memcpy(addr, &(c->remote_udp), sizeof(struct sockaddr));
+    }
+    else
+    {
+        errno = ETIMEDOUT;
+    }
+
+    return ret;
 }
 
 /**
@@ -617,7 +626,7 @@ int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
  */
 ssize_t listen_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-  CALLED(__func__);
+    CALLED(__func__);
     return -1;
 }
 
@@ -634,7 +643,7 @@ ssize_t listen_simptcp_socket_state_send (struct simptcp_socket* sock, const voi
  */
 ssize_t listen_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  CALLED(__func__);
+    CALLED(__func__);
     return -1;
 }
 
@@ -648,8 +657,8 @@ ssize_t listen_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf
  */
 int listen_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  CALLED(__func__);
-    return 0;
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -663,9 +672,8 @@ int listen_simptcp_socket_state_close (struct simptcp_socket* sock)
  */
 int listen_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  CALLED(__func__);
-  return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -680,27 +688,26 @@ int listen_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
  */
 void listen_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-  CALLED(__func__);
+    CALLED(__func__);
 
-  char flags = simptcp_get_flags(buf);
-  struct simptcp_socket *c;
+    char flags = simptcp_get_flags(buf);
+    struct simptcp_socket *c;
 
-  // on a un syn (ouverture de connexion)
-  if(sock->socket_type == listening_server && sock->pending_conn_req < sock->max_conn_req_backlog && (flags & SYN))
-  {
-    c = malloc(sizeof(struct simptcp_socket));
-    memcpy(&(c->remote_udp), &(sock->remote_udp), sizeof(struct sockaddr_in));
-    memcpy(&(c->remote_simptcp), &(sock->remote_simptcp), sizeof(struct sockaddr_in));
-    memcpy(&(c->local_simptcp), &(sock->local_simptcp), sizeof(struct sockaddr_in));
-    c->next_ack_num = simptcp_get_seq_num(buf)+1;
-    c->next_seq_num = 40;
-    c->socket_type = client;
-    lock_simptcp_socket(sock);
-    sock->new_conn_req[sock->pending_conn_req] = c;
-    sock->pending_conn_req++;
-    unlock_simptcp_socket(sock);
-  }
-
+    // on a un syn (ouverture de connexion)
+    if(sock->socket_type == listening_server && sock->pending_conn_req < sock->max_conn_req_backlog && (flags & SYN))
+    {
+        c = malloc(sizeof(struct simptcp_socket));
+        memcpy(&(c->remote_udp), &(sock->remote_udp), sizeof(struct sockaddr_in));
+        memcpy(&(c->remote_simptcp), &(sock->remote_simptcp), sizeof(struct sockaddr_in));
+        memcpy(&(c->local_simptcp), &(sock->local_simptcp), sizeof(struct sockaddr_in));
+        c->next_ack_num = simptcp_get_seq_num(buf)+1;
+        c->next_seq_num = 40;
+        c->socket_type = client;
+        lock_simptcp_socket(sock);
+        sock->new_conn_req[sock->pending_conn_req] = c;
+        sock->pending_conn_req++;
+        unlock_simptcp_socket(sock);
+    }
 }
 
 /**
@@ -713,7 +720,7 @@ void listen_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* soc
  */
 void listen_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-  CALLED(__func__);
+    CALLED(__func__);
 }
 
 
@@ -734,9 +741,8 @@ void listen_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
  */
 int synsent_simptcp_socket_state_active_open (struct  simptcp_socket* sock,struct sockaddr* addr, socklen_t len) 
 {
-  CALLED(__func__);
-    return 0;
-   
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -750,9 +756,8 @@ int synsent_simptcp_socket_state_active_open (struct  simptcp_socket* sock,struc
  */
 int synsent_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -767,9 +772,8 @@ int synsent_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int 
  */
 int synsent_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -785,9 +789,8 @@ int synsent_simptcp_socket_state_accept (struct simptcp_socket* sock, struct soc
  */
 ssize_t synsent_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -803,9 +806,8 @@ ssize_t synsent_simptcp_socket_state_send (struct simptcp_socket* sock, const vo
  */
 ssize_t synsent_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -818,9 +820,8 @@ ssize_t synsent_simptcp_socket_state_recv (struct simptcp_socket* sock, void *bu
  */
 int synsent_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -834,9 +835,8 @@ int synsent_simptcp_socket_state_close (struct simptcp_socket* sock)
  */
 int synsent_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -851,22 +851,22 @@ int synsent_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
  */
 void synsent_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-  CALLED(__func__);
-      char flags = simptcp_get_flags(buf);
-      u_int16_t seq_num = simptcp_get_seq_num(buf);
-      u_int16_t ack_num = simptcp_get_ack_num(buf);
+    CALLED(__func__);
+    char flags = simptcp_get_flags(buf);
+    u_int16_t seq_num = simptcp_get_seq_num(buf);
+    u_int16_t ack_num = simptcp_get_ack_num(buf);
+
     if((flags & SYN) && (flags & ACK) && sock->next_seq_num+1 == ack_num)
     {
-      lock_simptcp_socket(sock);
-      stop_timer(sock);
-      sock->next_ack_num = seq_num+1;
-      sock->next_seq_num++;
-      sock->socket_state = &(simptcp_entity.simptcp_socket_states->established);
-      simptcp_create_packet_ack(sock);
-      unlock_simptcp_socket(sock);
-      simptcp_socket_send_out_buffer(sock);
+        lock_simptcp_socket(sock);
+        stop_timer(sock);
+        sock->next_ack_num = seq_num+1;
+        sock->next_seq_num++;
+        sock->socket_state = &(simptcp_entity.simptcp_socket_states->established);
+        simptcp_create_packet_ack(sock);
+        unlock_simptcp_socket(sock);
+        simptcp_socket_send_out_buffer(sock);
     }
-
 }
 
 /**
@@ -879,20 +879,18 @@ void synsent_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* so
  */
 void synsent_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-  CALLED(__func__);
+    CALLED(__func__);
 
-  lock_simptcp_socket(sock);
-  stop_timer(sock);
-  unlock_simptcp_socket(sock);
+    lock_simptcp_socket(sock);
+    stop_timer(sock);
+    unlock_simptcp_socket(sock);
 
-  // resent out buffer until socked is not etablished
-  if(sock->socket_type == client && sock->nbr_retransmit <= 3 && sock->socket_state != &(simptcp_entity.simptcp_socket_states->established))
-  {
-    simptcp_socket_resend_out_buffer(sock);
-    start_timer(sock, sock->timer_duration);
-  }
-
-
+    // resent out buffer until socked is not etablished
+    if(sock->socket_type == client && sock->nbr_retransmit <= 3 && sock->socket_state != &(simptcp_entity.simptcp_socket_states->established))
+    {
+        simptcp_socket_resend_out_buffer(sock);
+        start_timer(sock, sock->timer_duration);
+    }
 }
 
 
@@ -913,9 +911,8 @@ void synsent_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
  */
 int synrcvd_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struct sockaddr* addr, socklen_t len) 
 {
-  CALLED(__func__);
-    return 0;
-   
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -929,9 +926,8 @@ int synrcvd_simptcp_socket_state_active_open (struct  simptcp_socket* sock, stru
  */
 int synrcvd_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -946,9 +942,8 @@ int synrcvd_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int 
  */
 int synrcvd_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -964,10 +959,8 @@ int synrcvd_simptcp_socket_state_accept (struct simptcp_socket* sock, struct soc
  */
 ssize_t synrcvd_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-
-CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -983,9 +976,8 @@ CALLED(__func__);
  */
 ssize_t synrcvd_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -998,9 +990,8 @@ ssize_t synrcvd_simptcp_socket_state_recv (struct simptcp_socket* sock, void *bu
  */
 int synrcvd_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1014,9 +1005,8 @@ int synrcvd_simptcp_socket_state_close (struct simptcp_socket* sock)
  */
 int synrcvd_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  CALLED(__func__);
-    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1031,37 +1021,32 @@ int synrcvd_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
  */
 void synrcvd_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-  CALLED(__func__);
- struct simptcp_socket* c;
- char flags = simptcp_get_flags(buf);
-  if(sock->socket_type == listening_server && (flags & ACK))
-  {
-    // je veux retrouver le bon client dans les new_conn_req
-    // il faut vérifier le numéro d'acquittement
-    // il faut mettre le client comme etablished
+    CALLED(__func__);
+    struct simptcp_socket* c;
+    char flags = simptcp_get_flags(buf);
     int i;
 
-    for(i=0; i<sock->pending_conn_req; i++)
+    if(sock->socket_type == listening_server && (flags & ACK))
     {
-      c = sock->new_conn_req[i];
-      if(c->socket_state == &(simptcp_entity.simptcp_socket_states->synsent) && 
-         c->remote_simptcp.sin_addr.s_addr == sock->remote_simptcp.sin_addr.s_addr &&
-         c->remote_simptcp.sin_port == sock->remote_simptcp.sin_port &&
-         c->next_seq_num+1 == simptcp_get_ack_num(buf))
-      {
-        c->next_ack_num = simptcp_get_seq_num(buf)+1;
-        c->next_seq_num++;
-        c->socket_state = &(simptcp_entity.simptcp_socket_states->established);
-        lock_simptcp_socket(sock);
-        sock->socket_state = &(simptcp_entity.simptcp_socket_states->established);
-        unlock_simptcp_socket(sock);
-        DPRINTF("New client etablished!\n");
-        break;
-      }
+        for(i=0; i<sock->pending_conn_req; i++)
+        {
+            c = sock->new_conn_req[i];
+            if(c->socket_state == &(simptcp_entity.simptcp_socket_states->synsent) && 
+                c->remote_simptcp.sin_addr.s_addr == sock->remote_simptcp.sin_addr.s_addr &&
+                c->remote_simptcp.sin_port == sock->remote_simptcp.sin_port &&
+                c->next_seq_num+1 == simptcp_get_ack_num(buf))
+            {
+                c->next_ack_num = simptcp_get_seq_num(buf)+1;
+                c->next_seq_num++;
+                c->socket_state = &(simptcp_entity.simptcp_socket_states->established);
+                lock_simptcp_socket(sock);
+                sock->socket_state = &(simptcp_entity.simptcp_socket_states->established);
+                unlock_simptcp_socket(sock);
+                DPRINTF("New client etablished!\n");
+                break;
+            }
+        }
     }
-
-  }
-
 }
 
 /**
@@ -1074,20 +1059,19 @@ void synrcvd_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* so
  */
 void synrcvd_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-  CALLED(__func__);
+    CALLED(__func__);
 
-  lock_simptcp_socket(sock);
-  stop_timer(sock);
-  unlock_simptcp_socket(sock);
+    lock_simptcp_socket(sock);
+    stop_timer(sock);
+    unlock_simptcp_socket(sock);
 
-  struct simptcp_socket *c = sock->new_conn_req[sock->pending_conn_req-1];
-  // resent out buffer until socked is not etablished
-  if(sock->socket_type == listening_server && c != NULL && c->socket_type == client && c->nbr_retransmit <= 3 && c->socket_state == &(simptcp_entity.simptcp_socket_states->synsent))
-  {
-    simptcp_socket_resend_out_buffer(c);
-    start_timer(sock, sock->timer_duration);
-  }
-
+    struct simptcp_socket *c = sock->new_conn_req[sock->pending_conn_req-1];
+    // resent out buffer until socked is not etablished
+    if(sock->socket_type == listening_server && c != NULL && c->socket_type == client && c->nbr_retransmit <= 3 && c->socket_state == &(simptcp_entity.simptcp_socket_states->synsent))
+    {
+        simptcp_socket_resend_out_buffer(c);
+        start_timer(sock, sock->timer_duration);
+    }
 }
 
 
@@ -1108,9 +1092,8 @@ void synrcvd_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
  */
 int established_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struct sockaddr* addr, socklen_t len) 
 {
-  CALLED(__func__);
-    return 0;
-   
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1124,9 +1107,8 @@ int established_simptcp_socket_state_active_open (struct  simptcp_socket* sock, 
  */
 int established_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1141,9 +1123,8 @@ CALLED(__func__);    return 0;
  */
 int established_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1159,28 +1140,27 @@ CALLED(__func__);    return 0;
  */
 ssize_t established_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
+    CALLED(__func__);
+    int ret = -1;
 
-CALLED(__func__);
-  int ret = -1;
+    lock_simptcp_socket(sock);
+    simptcp_create_packet_data(sock, buf, n);
+    sock->socket_state_sender = wait_ack;
+    unlock_simptcp_socket(sock);
+    simptcp_socket_send_out_buffer(sock);
 
-  lock_simptcp_socket(sock);
-  simptcp_create_packet_data(sock, buf, n);
-  sock->socket_state_sender = wait_ack;
-  unlock_simptcp_socket(sock);
-  simptcp_socket_send_out_buffer(sock);
+    start_timer(sock, sock->timer_duration);
 
-  start_timer(sock, sock->timer_duration);
+    while(sock->socket_state_sender == wait_ack && sock->nbr_retransmit <= 3){}
 
-  while(sock->socket_state_sender == wait_ack && sock->nbr_retransmit <= 3){}
+    if(sock->socket_state_sender != wait_ack)
+    {
+        ret = 0;
+    } else {
+        errno = ECONNABORTED;
+    }
 
-  if(sock->socket_state_sender != wait_ack)
-  {
-    ret = 0;
-  } else {
-    errno = ECONNABORTED;
-  }
-
-  return ret;
+    return ret;
 }    
 /**
  * called when application calls recv
@@ -1195,10 +1175,9 @@ CALLED(__func__);
  */
 ssize_t established_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  CALLED(__func__);
-  while(sock->in_len == 0){}
-
-  return 0;
+    CALLED(__func__);
+    while(sock->in_len == 0){}
+    return 0;
 }
 
 /**
@@ -1211,9 +1190,8 @@ ssize_t established_simptcp_socket_state_recv (struct simptcp_socket* sock, void
  */
 int established_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1227,9 +1205,8 @@ CALLED(__func__);    return 0;
  */
 int established_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1244,8 +1221,7 @@ CALLED(__func__);    return 0;
  */
 void established_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-
-CALLED(__func__);
+    CALLED(__func__);
 }
 
 /**
@@ -1258,17 +1234,16 @@ CALLED(__func__);
  */
 void established_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-  
-CALLED(__func__);
-  lock_simptcp_socket(sock);
-  stop_timer(sock);
-  unlock_simptcp_socket(sock);
+    CALLED(__func__);
+    lock_simptcp_socket(sock);
+    stop_timer(sock);
+    unlock_simptcp_socket(sock);
 
-  if(sock->socket_type == client && sock->nbr_retransmit <= 3 && sock->socket_state_sender == wait_ack)
-  {
-    simptcp_socket_resend_out_buffer(sock);
-    start_timer(sock, sock->timer_duration);
-  }
+    if(sock->socket_type == client && sock->nbr_retransmit <= 3 && sock->socket_state_sender == wait_ack)
+    {
+        simptcp_socket_resend_out_buffer(sock);
+        start_timer(sock, sock->timer_duration);
+    }
 
 }
 
@@ -1290,9 +1265,8 @@ CALLED(__func__);
  */
 int closewait_simptcp_socket_state_active_open (struct  simptcp_socket* sock,  struct sockaddr* addr, socklen_t len) 
 {
-  
-CALLED(__func__);    return 0;
-   
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1306,9 +1280,8 @@ CALLED(__func__);    return 0;
  */
 int closewait_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1323,9 +1296,8 @@ CALLED(__func__);    return 0;
  */
 int closewait_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1341,9 +1313,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t closewait_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1359,9 +1330,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t closewait_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1374,9 +1344,8 @@ CALLED(__func__);    return 0;
  */
 int closewait_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1390,9 +1359,8 @@ CALLED(__func__);    return 0;
  */
 int closewait_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1407,7 +1375,7 @@ CALLED(__func__);    return 0;
  */
 void closewait_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-CALLED(__func__);
+    CALLED(__func__);
 }
 
 /**
@@ -1420,7 +1388,8 @@ CALLED(__func__);
  */
 void closewait_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 
 /*********************************************************
@@ -1440,9 +1409,8 @@ CALLED(__func__);}
  */
 int finwait1_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struct sockaddr* addr, socklen_t len) 
 {
-  
-CALLED(__func__);    return 0;
-   
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1456,8 +1424,8 @@ CALLED(__func__);    return 0;
  */
 int finwait1_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  
-CALLED(__func__);    return 0;
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1472,9 +1440,8 @@ CALLED(__func__);    return 0;
  */
 int finwait1_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1490,9 +1457,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t finwait1_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1508,9 +1474,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t finwait1_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1523,9 +1488,8 @@ CALLED(__func__);    return 0;
  */
 int finwait1_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1539,9 +1503,8 @@ CALLED(__func__);    return 0;
  */
 int finwait1_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1556,7 +1519,8 @@ CALLED(__func__);    return 0;
  */
 void finwait1_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 /**
  * called after a timeout has detected
@@ -1568,7 +1532,8 @@ CALLED(__func__);}
  */
 void finwait1_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 
 /*********************************************************
@@ -1588,9 +1553,8 @@ CALLED(__func__);}
  */
 int finwait2_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struct sockaddr* addr, socklen_t len) 
 {
-  
-CALLED(__func__);    return 0;
-   
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1604,9 +1568,8 @@ CALLED(__func__);    return 0;
  */
 int finwait2_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1621,9 +1584,8 @@ CALLED(__func__);    return 0;
  */
 int finwait2_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1639,9 +1601,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t finwait2_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1657,9 +1618,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t finwait2_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1672,9 +1632,8 @@ CALLED(__func__);    return 0;
  */
 int finwait2_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1688,9 +1647,8 @@ CALLED(__func__);    return 0;
  */
 int finwait2_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1705,7 +1663,8 @@ CALLED(__func__);    return 0;
  */
 void finwait2_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 /**
  * called after a timeout has detected
@@ -1717,7 +1676,8 @@ CALLED(__func__);}
  */
 void finwait2_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 
 /*********************************************************
@@ -1737,9 +1697,8 @@ CALLED(__func__);}
  */
 int closing_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struct sockaddr* addr, socklen_t len) 
 {
-  
-CALLED(__func__);    return 0;
-   
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1753,9 +1712,8 @@ CALLED(__func__);    return 0;
  */
 int closing_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1770,9 +1728,8 @@ CALLED(__func__);    return 0;
  */
 int closing_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1788,9 +1745,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t closing_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1806,9 +1762,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t closing_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1821,9 +1776,8 @@ CALLED(__func__);    return 0;
  */
 int closing_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1837,9 +1791,8 @@ CALLED(__func__);    return 0;
  */
 int closing_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1854,7 +1807,8 @@ CALLED(__func__);    return 0;
  */
 void closing_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 /**
  * called after a timeout has detected
@@ -1866,7 +1820,8 @@ CALLED(__func__);}
  */
 void closing_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 
 /*********************************************************
@@ -1886,9 +1841,8 @@ CALLED(__func__);}
  */
 int lastack_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struct sockaddr* addr, socklen_t len) 
 {
-  
-CALLED(__func__);    return 0;
-   
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1902,9 +1856,8 @@ CALLED(__func__);    return 0;
  */
 int lastack_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1919,9 +1872,8 @@ CALLED(__func__);    return 0;
  */
 int lastack_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1937,9 +1889,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t lastack_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1955,9 +1906,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t lastack_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1970,9 +1920,8 @@ CALLED(__func__);    return 0;
  */
 int lastack_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -1986,9 +1935,8 @@ CALLED(__func__);    return 0;
  */
 int lastack_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -2003,7 +1951,8 @@ CALLED(__func__);    return 0;
  */
 void lastack_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 /**
  * called after a timeout has detected
@@ -2015,7 +1964,8 @@ CALLED(__func__);}
  */
 void lastack_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 
 /*********************************************************
@@ -2036,9 +1986,8 @@ CALLED(__func__);}
  */
 int timewait_simptcp_socket_state_active_open (struct  simptcp_socket* sock, struct sockaddr* addr, socklen_t len) 
 {
-  
-CALLED(__func__);    return 0;
-   
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -2052,9 +2001,8 @@ CALLED(__func__);    return 0;
  */
 int timewait_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -2069,9 +2017,8 @@ CALLED(__func__);    return 0;
  */
 int timewait_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -2087,9 +2034,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t timewait_simptcp_socket_state_send (struct simptcp_socket* sock, const void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -2105,9 +2051,8 @@ CALLED(__func__);    return 0;
  */
 ssize_t timewait_simptcp_socket_state_recv (struct simptcp_socket* sock, void *buf, size_t n, int flags)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -2120,9 +2065,8 @@ CALLED(__func__);    return 0;
  */
 int timewait_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
-  
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -2136,8 +2080,8 @@ CALLED(__func__);    return 0;
  */
 int timewait_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
-CALLED(__func__);    return 0;
-
+    CALLED(__func__);
+    return -1;
 }
 
 /**
@@ -2152,7 +2096,8 @@ CALLED(__func__);    return 0;
  */
 void timewait_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
 /**
  * called after a timeout has detected
@@ -2164,5 +2109,6 @@ CALLED(__func__);}
  */
 void timewait_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
-CALLED(__func__);}
+    CALLED(__func__);
+}
 
