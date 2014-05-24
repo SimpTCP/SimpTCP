@@ -20,23 +20,20 @@
 #define __DEBUG__               1
 #endif
 
-
-
 /* determines if the descriptor is a simptcp descriptor  by looking at the
  * simptcp_descriptors table. if it is a simptcp descriptor the function 
  * returns 1. Else, 0 is returned.
  */
 int is_simptcp_descriptor(int fd) 
 {
-	int res = 0;
+    CALLED(__func__);
+    int res = 0;
 
-  CALLED(__func__);
+    if ((fd >= 0) && (fd <= UINT16_MAX)) {
+        res = (simptcp_entity.simptcp_socket_descriptors[fd] != NULL);
+    }
 
-	if ((fd >= 0) && (fd <= UINT16_MAX)) {
-		res = (simptcp_entity.simptcp_socket_descriptors[fd] != NULL);
-	}
-  DPRINTF("descriptor %d %s a simptcp descriptor\n", fd, res ? "IS" : "IS NOT");
-
+    DPRINTF("descriptor %d %s a simptcp descriptor\n", fd, res ? "IS" : "IS NOT");
 	return res;
 }
 
@@ -46,16 +43,12 @@ int is_simptcp_descriptor(int fd)
  */
 int is_simptcp_socket(int domain, int type, int protocol)
 {
+    CALLED(__func__);
 	int res = 0;
 
-  CALLED(__func__);
+	res = ((domain == AF_INET) && (type == SOCK_STREAM) && (protocol == IPPROTO_SIMPTCP));
 
-	res = ((domain == AF_INET) && (type == SOCK_STREAM) &&  
-		   (protocol == IPPROTO_SIMPTCP));
-
-  DPRINTF("socket (%d,%d,%d) %s a simptcp socket\n",
-       domain, type, protocol, res ? "CREATES" : "DOES NOT CREATE");
-
+    DPRINTF("socket (%d,%d,%d) %s a simptcp socket\n", domain, type, protocol, res ? "CREATES" : "DOES NOT CREATE");
 	return res;
 }
 
@@ -63,75 +56,77 @@ int is_simptcp_socket(int domain, int type, int protocol)
 
 int socket(int domain, int type, int protocol)
 {
-  
-  CALLED(__func__);
+    CALLED(__func__);
 
     if (!is_simptcp_socket(domain, type, protocol))
-      return libc_socket(domain, type, protocol);
-    
+    {
+        return libc_socket(domain, type, protocol);  
+    }
     /* create a simptcp socket */    
     return create_simptcp_socket();
 }
 
 int bind (int fd, const struct sockaddr *addr, socklen_t len)
 {
-
-  CALLED(__func__);
+    CALLED(__func__);
     
-    if (!is_simptcp_descriptor(fd)) {
+    if (!is_simptcp_descriptor(fd))
+    {
         return libc_bind(fd, addr, len);
     }
+
     if (addr == NULL)
-      return -EINVAL;
+    {
+        return -EINVAL;
+    }
+
     /* Set the simptcp local socket with the binded one */
     memcpy(&(simptcp_entity.simptcp_socket_descriptors[fd]->local_simptcp), addr, len);
-    
     return 0;
 }
 
 int connect (int fd, const struct sockaddr *addr, socklen_t len)
 {
-  CALLED(__func__);
-    struct simptcp_socket* sock;
- 
+    CALLED(__func__);
 
-    if (!is_simptcp_descriptor(fd)) {
+    struct simptcp_socket* sock;
+
+    if (!is_simptcp_descriptor(fd))
+    {
         return libc_connect(fd, addr, len);
     }
+    
     /* Here comes the code for the connect related to simptcp */
-    sock=simptcp_entity.simptcp_socket_descriptors[fd];
+    sock = simptcp_entity.simptcp_socket_descriptors[fd];
     return sock->socket_state->active_open(sock,(struct sockaddr *)addr,len);
 }
 
 ssize_t send (int fd, const void *buf, size_t n, int flags)
 {
+    CALLED(__func__);
     struct simptcp_socket* sock;
 
-  CALLED(__func__);
-
-    if (!is_simptcp_descriptor(fd)) {
+    if (!is_simptcp_descriptor(fd))
+    {
         return libc_send(fd, buf, n, flags);
     }
 
     /* Here comes the code for the send related to simptcp */
-        sock=simptcp_entity.simptcp_socket_descriptors[fd];
-	return sock->socket_state->send(sock,buf,n,flags);
-
+    sock=simptcp_entity.simptcp_socket_descriptors[fd];
+    return sock->socket_state->send(sock,buf,n,flags);
 }
 
 ssize_t recv (int fd, void *buf, size_t n, int flags)
 {
+    CALLED(__func__);
     struct simptcp_socket* sock;
 
-    CALLED(__func__);
-
-    if (!is_simptcp_descriptor(fd)) {
+    if (!is_simptcp_descriptor(fd))
+    {
         return libc_recv(fd, buf, n, flags);
     }
 
     /* Here comes the code for the recv related to simptcp */
-    
-
     sock=simptcp_entity.simptcp_socket_descriptors[fd];
     return sock->socket_state->recv(sock,buf,n,flags);
 }
@@ -140,71 +135,72 @@ ssize_t recv (int fd, void *buf, size_t n, int flags)
 
 int listen (int fd, int n)
 {
-  struct simptcp_socket* sock;
-    
-  CALLED(__func__);
+    CALLED(__func__);
+    struct simptcp_socket* sock;
 
-    if (!is_simptcp_descriptor(fd)) {
+    if (!is_simptcp_descriptor(fd))
+    {
         return libc_listen(fd, n);
     }
 
     /* Here comes the code for the listen related to simtcp */
     if (n >= SOMAXCONN)
+    {
         return -EINVAL;
+    }
 
-    sock=simptcp_entity.simptcp_socket_descriptors[fd];
+    sock = simptcp_entity.simptcp_socket_descriptors[fd];
     return sock->socket_state->passive_open(sock,n);
-
-    return 0;
 }
 
 int accept (int fd, struct sockaddr *addr, socklen_t *addr_len)
 {
-  struct simptcp_socket* sock;
-    
-  CALLED(__func__);
-  
-  if (!is_simptcp_descriptor(fd)) {
-    return libc_accept(fd, addr, addr_len);
-  }
-  
-  /* Here comes the code for the accept related to simtcp */
-  sock=simptcp_entity.simptcp_socket_descriptors[fd];
-  return sock->socket_state->accept(sock,addr,addr_len);
+    CALLED(__func__);
+    struct simptcp_socket* sock;
+
+    if (!is_simptcp_descriptor(fd))
+    {
+        return libc_accept(fd, addr, addr_len);
+    }
+
+    /* Here comes the code for the accept related to simtcp */
+    sock = simptcp_entity.simptcp_socket_descriptors[fd];
+    return sock->socket_state->accept(sock,addr,addr_len);
 }
 
 int shutdown (int fd, int how)
 {
-  struct simptcp_socket* sock;
+    CALLED(__func__);
+    struct simptcp_socket* sock;
 
-  CALLED(__func__);
-	
-  if (!is_simptcp_descriptor(fd))
-    return libc_shutdown(fd, how);
-  
-  /* Here comes the code for the shutdown related to simtcp */
-  sock=simptcp_entity.simptcp_socket_descriptors[fd];
-  return sock->socket_state->shutdown (sock,how);  
+    if (!is_simptcp_descriptor(fd))
+    {
+        return libc_shutdown(fd, how);
+    }
+
+    /* Here comes the code for the shutdown related to simtcp */
+    sock = simptcp_entity.simptcp_socket_descriptors[fd];
+    return sock->socket_state->shutdown(sock,how);  
 }
 
 int close (int fd)
 {
-  CALLED(__func__);
-	
-  if (!is_simptcp_descriptor(fd)) {
-    return libc_close(fd);
-  }
+    CALLED(__func__);
 
-  /* Here comes the code for the close related to simtcp */
+    if (!is_simptcp_descriptor(fd))
+    {
+        return libc_close(fd);
+    }
 
-  return shutdown(fd, SHUT_RDWR);
+    /* Here comes the code for the close related to simtcp */
+    return shutdown(fd, SHUT_RDWR);
 }
 
 ssize_t read (int fd, void *buf, size_t n)
 {
-  CALLED(__func__);
-
-    if (!is_simptcp_descriptor(fd)) {
+    CALLED(__func__);
+    if (!is_simptcp_descriptor(fd))
+    {
         return libc_read(fd, buf, n);
     }
 
@@ -214,47 +210,39 @@ ssize_t read (int fd, void *buf, size_t n)
 
 ssize_t write (int fd, const void *buf, size_t n)
 {
-  CALLED(__func__);
+    CALLED(__func__);
 	
-    if (!is_simptcp_descriptor(fd)) {
+    if (!is_simptcp_descriptor(fd))
+    {
         return libc_write(fd, buf, n);
     }
 
-    /* Here comes the code for the xxxx related to simtcp */
+    /* Here comes the code for the write related to simtcp */
     return send(fd, buf, n, 0);
 }
 
 int getsockname (int fd, struct sockaddr *addr, socklen_t *len)
 {
-  CALLED(__func__);
-
+    CALLED(__func__);
     return libc_getsockname(fd, addr, len);
 }
 
 int getpeername (int fd, struct sockaddr *addr, socklen_t *len)
 {
-  CALLED(__func__);
-	
+    CALLED(__func__);
     return libc_getpeername(fd, addr, len);
 }
 
 // TODO : Hide the fact that an udp socket is used in reality.
-int getsockopt (int fd, int level, int optname, void *optval, 
-                socklen_t *optlen)
+int getsockopt (int fd, int level, int optname, void *optval, socklen_t *optlen)
 {
-  CALLED(__func__);
-   
+    CALLED(__func__);
     return libc_getsockopt(fd, level, optname, optval, optlen);
 }
 
 // TODO: Prevent some setsockopt() parameters values.
-int setsockopt (int fd, int level, int optname, const void *optval, 
-                socklen_t optlen)
+int setsockopt (int fd, int level, int optname, const void *optval, socklen_t optlen)
 {
-  CALLED(__func__);
- 
+    CALLED(__func__);
     return libc_setsockopt(fd, level,optname, optval, optlen);
 }
-
-
-/* vim: set expandtab ts=4 sw=4 tw=80: */
