@@ -30,16 +30,12 @@ int is_simptcp_descriptor(int fd)
 {
 	int res = 0;
 
-#if __DEBUG__
-	printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
 
 	if ((fd >= 0) && (fd <= UINT16_MAX)) {
 		res = (simptcp_entity.simptcp_socket_descriptors[fd] != NULL);
 	}
-#if __DEBUG__
-	printf("descriptor %d %s a simptcp descriptor\n", fd, res ? "IS" : "IS NOT");
-#endif
+  DPRINTF("descriptor %d %s a simptcp descriptor\n", fd, res ? "IS" : "IS NOT");
 
 	return res;
 }
@@ -52,17 +48,13 @@ int is_simptcp_socket(int domain, int type, int protocol)
 {
 	int res = 0;
 
-#if __DEBUG__
-	printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
 
 	res = ((domain == AF_INET) && (type == SOCK_STREAM) &&  
 		   (protocol == IPPROTO_SIMPTCP));
 
-#if __DEBUG__
-	printf("socket (%d,%d,%d) %s a simptcp socket\n",
-		   domain, type, protocol, res ? "CREATES" : "DOES NOT CREATE");
-#endif
+  DPRINTF("socket (%d,%d,%d) %s a simptcp socket\n",
+       domain, type, protocol, res ? "CREATES" : "DOES NOT CREATE");
 
 	return res;
 }
@@ -71,10 +63,8 @@ int is_simptcp_socket(int domain, int type, int protocol)
 
 int socket(int domain, int type, int protocol)
 {
-
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+  
+  CALLED(__func__);
 
     if (!is_simptcp_socket(domain, type, protocol))
       return libc_socket(domain, type, protocol);
@@ -85,9 +75,8 @@ int socket(int domain, int type, int protocol)
 
 int bind (int fd, const struct sockaddr *addr, socklen_t len)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+
+  CALLED(__func__);
     
     if (!is_simptcp_descriptor(fd)) {
         return libc_bind(fd, addr, len);
@@ -102,9 +91,7 @@ int bind (int fd, const struct sockaddr *addr, socklen_t len)
 
 int connect (int fd, const struct sockaddr *addr, socklen_t len)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
     struct simptcp_socket* sock;
  
 
@@ -120,9 +107,7 @@ ssize_t send (int fd, const void *buf, size_t n, int flags)
 {
     struct simptcp_socket* sock;
 
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
 
     if (!is_simptcp_descriptor(fd)) {
         return libc_send(fd, buf, n, flags);
@@ -138,9 +123,7 @@ ssize_t recv (int fd, void *buf, size_t n, int flags)
 {
     struct simptcp_socket* sock;
 
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+    CALLED(__func__);
 
     if (!is_simptcp_descriptor(fd)) {
         return libc_recv(fd, buf, n, flags);
@@ -159,10 +142,8 @@ int listen (int fd, int n)
 {
   struct simptcp_socket* sock;
     
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
-    
+  CALLED(__func__);
+
     if (!is_simptcp_descriptor(fd)) {
         return libc_listen(fd, n);
     }
@@ -181,9 +162,7 @@ int accept (int fd, struct sockaddr *addr, socklen_t *addr_len)
 {
   struct simptcp_socket* sock;
     
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
   
   if (!is_simptcp_descriptor(fd)) {
     return libc_accept(fd, addr, addr_len);
@@ -198,9 +177,7 @@ int shutdown (int fd, int how)
 {
   struct simptcp_socket* sock;
 
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
 	
   if (!is_simptcp_descriptor(fd))
     return libc_shutdown(fd, how);
@@ -212,9 +189,7 @@ int shutdown (int fd, int how)
 
 int close (int fd)
 {
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
 	
   if (!is_simptcp_descriptor(fd)) {
     return libc_close(fd);
@@ -227,9 +202,7 @@ int close (int fd)
 
 ssize_t read (int fd, void *buf, size_t n)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
 
     if (!is_simptcp_descriptor(fd)) {
         return libc_read(fd, buf, n);
@@ -241,9 +214,7 @@ ssize_t read (int fd, void *buf, size_t n)
 
 ssize_t write (int fd, const void *buf, size_t n)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
 	
     if (!is_simptcp_descriptor(fd)) {
         return libc_write(fd, buf, n);
@@ -255,18 +226,14 @@ ssize_t write (int fd, const void *buf, size_t n)
 
 int getsockname (int fd, struct sockaddr *addr, socklen_t *len)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
 
     return libc_getsockname(fd, addr, len);
 }
 
 int getpeername (int fd, struct sockaddr *addr, socklen_t *len)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
 	
     return libc_getpeername(fd, addr, len);
 }
@@ -275,9 +242,7 @@ int getpeername (int fd, struct sockaddr *addr, socklen_t *len)
 int getsockopt (int fd, int level, int optname, void *optval, 
                 socklen_t *optlen)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
    
     return libc_getsockopt(fd, level, optname, optval, optlen);
 }
@@ -286,9 +251,7 @@ int getsockopt (int fd, int level, int optname, void *optval,
 int setsockopt (int fd, int level, int optname, const void *optval, 
                 socklen_t optlen)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
  
     return libc_setsockopt(fd, level,optname, optval, optlen);
 }

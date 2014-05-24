@@ -22,7 +22,7 @@
 
 #define CHECK_FUNCTION_POINTER(funcname)                        \
     if (!funcname ## _ptr) {                                    \
-        printf("Unable to resolve symbol %s\n", #funcname);     \
+        DPRINTF("Unable to resolve symbol %s\n", #funcname);     \
         return -1;                                              \
     }
 
@@ -56,9 +56,7 @@ static int (*setsockopt_ptr) (int fd, int level, int optname, const void *optval
  */
 int libc_socket(int domain, int type, int protocol)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(socket);
     CHECK_FUNCTION_POINTER(socket);
@@ -68,9 +66,7 @@ int libc_socket(int domain, int type, int protocol)
 
 int libc_bind (int fd, const struct sockaddr *addr, socklen_t len)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(bind);
     CHECK_FUNCTION_POINTER(bind);
@@ -80,9 +76,7 @@ int libc_bind (int fd, const struct sockaddr *addr, socklen_t len)
 
 int libc_connect (int fd, const struct sockaddr *addr, socklen_t len)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(connect);
     CHECK_FUNCTION_POINTER(connect);
@@ -92,9 +86,7 @@ int libc_connect (int fd, const struct sockaddr *addr, socklen_t len)
 
 ssize_t libc_send (int fd, const void *buf, size_t n, int flags)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(send);
     CHECK_FUNCTION_POINTER(send);
@@ -104,9 +96,7 @@ ssize_t libc_send (int fd, const void *buf, size_t n, int flags)
 
 ssize_t libc_recv (int fd, void *buf, size_t n, int flags)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(recv);
     CHECK_FUNCTION_POINTER(recv);
@@ -117,9 +107,7 @@ ssize_t libc_recv (int fd, void *buf, size_t n, int flags)
 ssize_t libc_sendto(int fd, const void *buf, size_t n, int flags, 
                     const struct sockaddr *addr, socklen_t addr_len) 
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(sendto);
     CHECK_FUNCTION_POINTER(sendto);
@@ -129,9 +117,6 @@ ssize_t libc_sendto(int fd, const void *buf, size_t n, int flags,
 ssize_t libc_recvfrom(int fd, void *buf, size_t n, int flags, 
                       struct sockaddr *addr, socklen_t *addr_len)
 {
-  //#if __DEBUG__
-  //printf("function %s called\n", __func__);
-  //#endif
 
     INIT_FUNCTION_POINTER(recvfrom);
     CHECK_FUNCTION_POINTER(recvfrom);
@@ -141,9 +126,7 @@ ssize_t libc_recvfrom(int fd, void *buf, size_t n, int flags,
 
 ssize_t libc_sendmsg (int fd, const struct msghdr *message, int flags)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(sendmsg);
     CHECK_FUNCTION_POINTER(sendmsg);
@@ -153,9 +136,7 @@ ssize_t libc_sendmsg (int fd, const struct msghdr *message, int flags)
 
 ssize_t libc_recvmsg (int fd, struct msghdr *message, int flags)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(recvmsg);
     CHECK_FUNCTION_POINTER(recvmsg);
@@ -166,9 +147,7 @@ ssize_t libc_recvmsg (int fd, struct msghdr *message, int flags)
 
 int libc_listen (int fd, int n)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(listen);
     CHECK_FUNCTION_POINTER(listen);
@@ -178,9 +157,7 @@ int libc_listen (int fd, int n)
 
 int libc_accept (int fd, struct sockaddr *addr, socklen_t *addr_len)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(accept);
     CHECK_FUNCTION_POINTER(accept);
@@ -190,9 +167,7 @@ int libc_accept (int fd, struct sockaddr *addr, socklen_t *addr_len)
 
 int libc_shutdown (int fd, int how)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(shutdown);
     CHECK_FUNCTION_POINTER(shutdown);
@@ -202,9 +177,7 @@ int libc_shutdown (int fd, int how)
 
 int libc_close (int fd)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(close);
     CHECK_FUNCTION_POINTER(close);
@@ -214,9 +187,7 @@ int libc_close (int fd)
 
 ssize_t libc_read (int fd, void *buf, size_t n)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(read);
     CHECK_FUNCTION_POINTER(read);
@@ -226,9 +197,7 @@ ssize_t libc_read (int fd, void *buf, size_t n)
 
 ssize_t libc_write (int fd, const void *buf, size_t n)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(write);
     CHECK_FUNCTION_POINTER(write);
@@ -238,9 +207,7 @@ ssize_t libc_write (int fd, const void *buf, size_t n)
 
 int libc_getsockname (int fd, struct sockaddr *addr, socklen_t *len)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(getsockname);
     CHECK_FUNCTION_POINTER(getsockname);
@@ -250,9 +217,7 @@ int libc_getsockname (int fd, struct sockaddr *addr, socklen_t *len)
 
 int libc_getpeername (int fd, struct sockaddr *addr, socklen_t *len)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(getpeername);
     CHECK_FUNCTION_POINTER(getpeername);
@@ -264,9 +229,7 @@ int libc_getpeername (int fd, struct sockaddr *addr, socklen_t *len)
 int libc_getsockopt (int fd, int level, int optname, void *optval, 
 		     socklen_t *optlen)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(getsockopt);
     CHECK_FUNCTION_POINTER(getsockopt);
@@ -277,9 +240,7 @@ int libc_getsockopt (int fd, int level, int optname, void *optval,
 int libc_setsockopt (int fd, int level, int optname, const void *optval,
                      socklen_t optlen)
 {
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     INIT_FUNCTION_POINTER(setsockopt);
     CHECK_FUNCTION_POINTER(setsockopt);

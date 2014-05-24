@@ -40,9 +40,7 @@ int set_non_blocking(int fd)
 {
     int flags;
 
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+	CALLED(__func__);
 
 /* If they have O_NONBLOCK, use the Posix way to do it */
 #if defined(O_NONBLOCK)
@@ -73,15 +71,12 @@ int set_non_blocking(int fd)
  */
 int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
 {
+	CALLED(__func__);
   struct simptcp_socket *sock = NULL;
   struct sockaddr_in simptcp_remote;
   u_int16_t dport;
   int fd; /* simtcp socket descriptor */
   int slen=sizeof(struct sockaddr_in);
-
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif 
 
  /* set the sockaddr of the remote simptcp socket 
     from which the packet originates*/
@@ -103,11 +98,9 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
 	      && sock->remote_simptcp.sin_addr.s_addr == simptcp_remote.sin_addr.s_addr
 	     && sock->remote_simptcp.sin_port == simptcp_remote.sin_port)
 	    { /* this is the fetched socket */
-#if __DEBUG__
-	      printf("Delivering packet to socket fd %u at state %s\n",
-		     fd, simptcp_socket_state_get_str(sock->socket_state));
-#endif
-	      return fd;
+
+	  		DPRINTF("Delivering packet to socket fd %u at state %s\n", fd, simptcp_socket_state_get_str(sock->socket_state));
+	      	return fd;
 	    } 
 	}
     }
@@ -119,10 +112,9 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
 	  if ((sock->local_simptcp.sin_port == dport)
 	      && (sock->socket_type == listening_server))
 	    { /* this is the fetched listening socket */
-#if __DEBUG__
-	      printf("Delivering packet to socket fd %u at state %s\n",
-		     fd, simptcp_socket_state_get_str(sock->socket_state));
-#endif
+
+	  		DPRINTF("Delivering packet to socket fd %u at state %s\n", fd, simptcp_socket_state_get_str(sock->socket_state));
+
 	      /* for a listening socket an additionnal work is needed :
 		 save the remote udp/simpTCP addresses; they will be used
 		 when processing the received pdu
@@ -138,9 +130,7 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
 	}
     }
   /* No match found */
-#if __DEBUG__
-  printf("No Match found \n");
-#endif
+    DPRINTF("Not match found.\n");
  return -1; 
 }
 
@@ -161,9 +151,7 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
 void * simptcp_entity_handler()
 {
 
-	#if __DEBUG__
-	    printf("function %s called\n", __func__);
-	#endif
+	CALLED(__func__);
 
   /* simptcp receive buffer */
   char* buffer =  simptcp_entity.in_buffer; 
@@ -181,26 +169,20 @@ void * simptcp_entity_handler()
 				      (struct sockaddr*) &udp_remote, &slen);
 
 		if (simptcp_entity.in_len != -1) {
-			#if __DEBUG__
-		  	    printf("************************************************************\n"
+			DPRINTF("************************************************************\n"
 				     "Received packet of size %d on %s:%hu\n",
 				     simptcp_entity.in_len, inet_ntoa(udp_remote.sin_addr),
 				     simptcp_get_dport(buffer));
-			#endif
 
       /* check if corrupted */
       if (!simptcp_check_checksum(buffer,simptcp_entity.in_len)) {
-				#if __DEBUG__
-					printf("Dropping corrupted packet\n");
-				#endif
+      		DPRINTF("Dropping corrupted packet\n");
 				/* TODO : on pourrait prévoir un memset */
 				continue;
       }
       else
       {
-				#if __DEBUG__
-					simptcp_lprint_packet(buffer);
-				#endif
+				simptcp_lprint_packet(buffer);
 				/* Demultiplex packet */
 				fd = demultiplex_packet(buffer,&udp_remote);
 				if (fd >= 0 && fd < simptcp_entity.open_simptcp_sockets)
@@ -241,10 +223,9 @@ void * simptcp_entity_handler()
 int start_simptcp(int local_udp)
 {    
   int res = -1;
-  
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+
+  CALLED(__func__);
+
 	simptcp_entity.local_udp.sin_family = AF_INET;
 	simptcp_entity.local_udp.sin_addr.s_addr = htonl(INADDR_ANY);
 	simptcp_entity.local_udp.sin_port = htons(local_udp);

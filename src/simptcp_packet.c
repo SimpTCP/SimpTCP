@@ -32,9 +32,7 @@
 */
 void simptcp_create_packet(struct simptcp_socket *s, simptcp_generic_header *p)
 {
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
   s->nbr_retransmit = 0;
   char* buffer = s->out_buffer;
   simptcp_set_sport(buffer, p->sport);
@@ -57,9 +55,7 @@ void simptcp_create_packet(struct simptcp_socket *s, simptcp_generic_header *p)
 */
 void simptcp_create_packet_data(struct simptcp_socket *s, const void* data, size_t len)
 {
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
   simptcp_generic_header h;
   h.sport = ntohs(s->local_simptcp.sin_port);
   h.dport = ntohs(s->remote_simptcp.sin_port);
@@ -80,9 +76,7 @@ void simptcp_create_packet_data(struct simptcp_socket *s, const void* data, size
 */
 void simptcp_create_packet_syn(struct simptcp_socket *s)
 {
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
   simptcp_generic_header h;
   h.sport = ntohs(s->local_simptcp.sin_port);
   h.dport = ntohs(s->remote_simptcp.sin_port);
@@ -102,9 +96,7 @@ void simptcp_create_packet_syn(struct simptcp_socket *s)
 */
 void simptcp_create_packet_syn_ack(struct simptcp_socket *d)
 {
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+  CALLED(__func__);
   simptcp_generic_header h;
   h.sport = ntohs(d->local_simptcp.sin_port);
   h.dport = ntohs(d->remote_simptcp.sin_port);
@@ -124,9 +116,7 @@ void simptcp_create_packet_syn_ack(struct simptcp_socket *d)
 */
 void simptcp_create_packet_ack(struct simptcp_socket *d)
 {
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
   simptcp_generic_header h;
   h.sport = ntohs(d->local_simptcp.sin_port);
   h.dport = ntohs(d->remote_simptcp.sin_port);
@@ -148,9 +138,6 @@ void simptcp_create_packet_ack(struct simptcp_socket *d)
 */
 void simptcp_set_sport(char * buffer, u_int16_t sport)
 { 
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
   ((simptcp_generic_header *)buffer)->sport = htons(sport);
 }
 
@@ -162,9 +149,6 @@ void simptcp_set_sport(char * buffer, u_int16_t sport)
 */
 u_int16_t simptcp_get_sport (const char *buffer)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
   return ntohs(((const simptcp_generic_header  *)buffer)->sport);
 }
 
@@ -176,9 +160,6 @@ u_int16_t simptcp_get_sport (const char *buffer)
  */
 void    simptcp_set_dport (char *buffer, u_int16_t dport)
 { 
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
   ((simptcp_generic_header *)buffer)->dport = htons(dport);
 }
 
@@ -190,9 +171,6 @@ void    simptcp_set_dport (char *buffer, u_int16_t dport)
  */
 u_int16_t simptcp_get_dport (const char *buffer)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
   return ntohs(((const simptcp_generic_header  *)buffer)->dport);
 }
 
@@ -204,9 +182,6 @@ u_int16_t simptcp_get_dport (const char *buffer)
  */
 void    simptcp_set_flags  (char *buffer, u_char flags)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
   ((simptcp_generic_header *) buffer)->flags = flags;
 }
 
@@ -218,9 +193,6 @@ void    simptcp_set_flags  (char *buffer, u_char flags)
  */
 unsigned char  simptcp_get_flags  (const char *buffer)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
   return ((const simptcp_generic_header *) buffer)->flags;
 }
 
@@ -232,9 +204,6 @@ unsigned char  simptcp_get_flags  (const char *buffer)
  */
 void    simptcp_set_seq_num   (char *buffer, u_int16_t seq)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
   ((simptcp_generic_header *)buffer)->seq_num = htons(seq);
 }
 
@@ -247,9 +216,6 @@ void    simptcp_set_seq_num   (char *buffer, u_int16_t seq)
  */
 u_int16_t   simptcp_get_seq_num   (const char *buffer)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
   return ntohs(((const simptcp_generic_header  *)buffer)->seq_num);
 }
 
@@ -261,9 +227,6 @@ u_int16_t   simptcp_get_seq_num   (const char *buffer)
  */
 void    simptcp_set_ack_num   (char *buffer, u_int16_t ack)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
   ((simptcp_generic_header *)buffer)->ack_num = htons(ack);
 }
 
@@ -275,9 +238,7 @@ void    simptcp_set_ack_num   (char *buffer, u_int16_t ack)
  */
 u_int16_t   simptcp_get_ack_num   (const char *buffer)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
+
   return ntohs(((const simptcp_generic_header  *)buffer)->ack_num);
 }
 
@@ -289,9 +250,7 @@ u_int16_t   simptcp_get_ack_num   (const char *buffer)
  */
 void simptcp_set_head_len   (char *buffer, unsigned char hlen)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
+
   ((simptcp_generic_header *) buffer)->header_len = hlen;
 }
 
@@ -303,9 +262,7 @@ void simptcp_set_head_len   (char *buffer, unsigned char hlen)
  */
 unsigned char   simptcp_get_head_len   (const char *buffer)
 {
-#if __DEBUG__
-  //  printf("function %s called\n", __func__); 
-#endif
+
   return ((const simptcp_generic_header *) buffer)->header_len;
 }
 
@@ -317,9 +274,7 @@ unsigned char   simptcp_get_head_len   (const char *buffer)
  */
 void    simptcp_set_total_len   (char *buffer, u_int16_t tlen)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif  
+  
 ((simptcp_generic_header *)buffer)->total_len = (tlen);
 }
 
@@ -331,9 +286,7 @@ void    simptcp_set_total_len   (char *buffer, u_int16_t tlen)
  */
 u_int16_t   simptcp_get_total_len   (const char *buffer)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
+
   return (((const simptcp_generic_header  *)buffer)->total_len);
 }
 
@@ -345,9 +298,7 @@ u_int16_t   simptcp_get_total_len   (const char *buffer)
  */
 void    simptcp_set_win_size   (char *buffer, u_int16_t size)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
+
 ((simptcp_generic_header *)buffer)->window_size = (size);
 }
 
@@ -359,9 +310,7 @@ void    simptcp_set_win_size   (char *buffer, u_int16_t size)
  */
 u_int16_t   simptcp_get_win_size   (const char *buffer)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
+
   return (((const simptcp_generic_header  *)buffer)->window_size);
 }
 
@@ -373,9 +322,7 @@ u_int16_t   simptcp_get_win_size   (const char *buffer)
  */
 u_int16_t   simptcp_get_checksum   (const char *buffer)
 {
-#if __DEBUG__
-  //printf("function %s called\n", __func__);
-#endif
+
   return (((const simptcp_generic_header  *)buffer)->checksum);
 }
 
@@ -392,9 +339,7 @@ void simptcp_add_checksum (char *buffer, int len)
     u_int16_t checksum = 0;
     u_int16_t *buf = (u_int16_t *) buffer;
     simptcp_generic_header *header= (simptcp_generic_header *) buffer;
-#if __DEBUG__
-    //printf("function %s called\n", __func__);
-#endif
+
     /* if length is odd we pad with 0 */
     if (len % 2 != 0)
     {
@@ -424,9 +369,7 @@ int simptcp_check_checksum(char *buffer, int len)
     u_int16_t checksum = 0;
     u_int16_t *buf = (u_int16_t *) buffer;
     const simptcp_generic_header *header= (const simptcp_generic_header *) buffer;
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
     // if length is odd we pad with 0
     if (len % 2 != 0)
     {
@@ -455,9 +398,7 @@ u_int16_t simptcp_extract_data (char * pdu, void * payload) {
 u_int16_t dlen; /* data length */
 u_int16_t hlen; /* header length */
   
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
   hlen = simptcp_get_head_len(pdu); 
   dlen = simptcp_get_total_len(pdu)-hlen;
   if (dlen > 0) 
@@ -490,9 +431,7 @@ void simptcp_lprint_packet (char * buf)
     unsigned char hlen= simptcp_get_head_len(buf);
     unsigned char flags=simptcp_get_flags(buf);
 
-#if __DEBUG__
-    printf("function %s called\n", __func__);
-#endif
+CALLED(__func__);
 
     strcat(sflags, ((flags & SYN) == SYN) ? COLOR("S", GREEN) : COLOR("S", RED));
     strcat(sflags, "|");
@@ -500,18 +439,18 @@ void simptcp_lprint_packet (char * buf)
     strcat(sflags, "|");
     strcat(sflags, ((flags & RST) == RST) ? COLOR("R", GREEN) : COLOR("R", RED));
 
-    printf ("+----------------+-----------------+-------------------+\n");
-    printf ("| sport : %5hu  | dport : %5hu   | seqnum : %5hu    |\n",
+    DPRINTF("+----------------+-----------------+-------------------+\n");
+    DPRINTF("| sport : %5hu  | dport : %5hu   | seqnum : %5hu    |\n",
             simptcp_get_sport(buf), simptcp_get_dport(buf),
 	    simptcp_get_seq_num(buf));
-    printf ("+----------------+-----------------+-------------------+\n");
-    printf ("| acknum : %5hu | hlen : %3hhu      | Flags : %10s     |\n",
+    DPRINTF("+----------------+-----------------+-------------------+\n");
+    DPRINTF("| acknum : %5hu | hlen : %3hhu      | Flags : %10s     |\n",
 	    simptcp_get_ack_num(buf),hlen,sflags);
-    printf ("+----------------+-----------------+-------------------+\n");
+    DPRINTF("+----------------+-----------------+-------------------+\n");
     if (!flags)
     {
-      printf ("| DATA : %45s |\n",(buf+hlen));
-      printf ("+------------------------------------------------------+\n");
+      DPRINTF ("| DATA : %45s |\n",(buf+hlen));
+      DPRINTF ("+------------------------------------------------------+\n");
     }
 }
 
@@ -529,9 +468,7 @@ void simptcp_print_packet (char * buf)
   
   unsigned char flags=simptcp_get_flags(buf);
   
-#if __DEBUG__
-  //   printf("function %s called\n", __func__);
-#endif
+
 
     if ((flags & SYN) == SYN)
         strcat (sflags, "S|");
@@ -549,11 +486,11 @@ void simptcp_print_packet (char * buf)
         strcat (sflags, " |");
 
  
-    printf("Source port: %5hu, Destination port: %5hu, seqnum: %5hu\n acknum:%5hu, hlen: %3hhu, flags: %7s, tlen: %5hu\n ",simptcp_get_sport(buf),
+    DPRINTF("Source port: %5hu, Destination port: %5hu, seqnum: %5hu\n acknum:%5hu, hlen: %3hhu, flags: %7s, tlen: %5hu\n ",simptcp_get_sport(buf),
 	   simptcp_get_dport(buf),simptcp_get_seq_num(buf), 
 	   simptcp_get_ack_num(buf),hlen,sflags,simptcp_get_total_len(buf));
     if (tlen != hlen) { /* simptcp packet conveys data */
-      printf("DATA: %35s \n",(buf+hlen));
+      DPRINTF("DATA: %35s \n",(buf+hlen));
     }
 
 }
