@@ -1310,6 +1310,9 @@ ssize_t established_simptcp_socket_state_recv (struct simptcp_socket* sock, void
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
+
+  while(sock->in_len == 0){}
+
   return 0;
 }
 
