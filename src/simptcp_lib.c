@@ -348,20 +348,6 @@ int simptcp_socket_resend_out_buffer(struct simptcp_socket *sock)
     return simptcp_socket_send_out_buffer(sock);
 }
 
-/*! \fn int simptcp_socket_send_syn(struct simptcp_socket* sock)
- * \brief Cree pour envoie un packet syn au remote_simptcp
- * \param sock pointeur sur un socket SimTCP
- * \return 0 si toutes les données ont été envoyées, -1 sinon.
- */
-int simptcp_socket_send_syn(struct simptcp_socket *sock)
-{
-    CALLED(__func__);
-    lock_simptcp_socket(sock);
-    simptcp_create_packet_syn(sock);
-    unlock_simptcp_socket(sock);
-    return simptcp_socket_send_out_buffer(sock);
-}
-
 /*** socket state dependent functions ***/
 
 
