@@ -1272,6 +1272,8 @@ ssize_t established_simptcp_socket_state_send (struct simptcp_socket* sock, cons
   printf("function %s called\n", __func__);
 #endif
 
+  int ret = -1;
+
   lock_simptcp_socket(sock);
   simptcp_create_packet_data(sock, buf, n);
   sock->socket_state_sender = wait_ack;
@@ -1281,19 +1283,15 @@ ssize_t established_simptcp_socket_state_send (struct simptcp_socket* sock, cons
   start_timer(sock, sock->timer_duration);
 
   while(sock->socket_state_sender == wait_ack && sock->nbr_retransmit <= 3){}
-  // do{
 
-  //     if(k==5)  //refait un envoi tout les 1000ms
-  //     {
-  //       k=0;
-  //       simptcp_socket_resend_out_buffer(sock);
-  //     }
-  //     usleep(200000);
-  //     k++;
+  if(sock->socket_state_sender != wait_ack)
+  {
+    ret = 0;
+  } else {
+    errno = ECONNABORTED;
+  }
 
-  // }while(sock->socket_state_sender == wait_ack && sock->nbr_retransmit <=3);
-
-  return 0;
+  return ret;
 }    
 /**
  * called when application calls recv
