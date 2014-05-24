@@ -16,14 +16,14 @@
 #endif
 
 
-#define INIT_FUNCTION_POINTER(funcname)                         \
-    if (!funcname ## _ptr)                                      \
+#define INIT_FUNCTION_POINTER(funcname)                          \
+    if (!funcname ## _ptr)                                       \
         funcname ## _ptr = dlsym(RTLD_NEXT, #funcname)
 
-#define CHECK_FUNCTION_POINTER(funcname)                        \
-    if (!funcname ## _ptr) {                                    \
+#define CHECK_FUNCTION_POINTER(funcname)                         \
+    if (!funcname ## _ptr) {                                     \
         DPRINTF("Unable to resolve symbol %s\n", #funcname);     \
-        return -1;                                              \
+        return -1;                                               \
     }
 
 /* Some function pointers to the libc */
@@ -56,196 +56,155 @@ static int (*setsockopt_ptr) (int fd, int level, int optname, const void *optval
  */
 int libc_socket(int domain, int type, int protocol)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(socket);
     CHECK_FUNCTION_POINTER(socket);
-
     return socket_ptr(domain, type, protocol);
 }
 
 int libc_bind (int fd, const struct sockaddr *addr, socklen_t len)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(bind);
     CHECK_FUNCTION_POINTER(bind);
-
     return bind_ptr(fd, addr, len);
 }
 
 int libc_connect (int fd, const struct sockaddr *addr, socklen_t len)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(connect);
     CHECK_FUNCTION_POINTER(connect);
-
     return connect_ptr(fd, addr, len);
 }
 
 ssize_t libc_send (int fd, const void *buf, size_t n, int flags)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(send);
     CHECK_FUNCTION_POINTER(send);
-
     return send_ptr(fd, buf, n, flags);
 }
 
 ssize_t libc_recv (int fd, void *buf, size_t n, int flags)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(recv);
     CHECK_FUNCTION_POINTER(recv);
-    
     return recv_ptr(fd, buf, n, flags);
 }
 
 ssize_t libc_sendto(int fd, const void *buf, size_t n, int flags, 
                     const struct sockaddr *addr, socklen_t addr_len) 
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(sendto);
     CHECK_FUNCTION_POINTER(sendto);
-    
     return sendto_ptr(fd, buf, n, flags, addr, addr_len);
 }
 ssize_t libc_recvfrom(int fd, void *buf, size_t n, int flags, 
                       struct sockaddr *addr, socklen_t *addr_len)
 {
-
+    // Pas de CALLED(__func__) pour pas se faire spamer par l'entity simptcp :)))
     INIT_FUNCTION_POINTER(recvfrom);
-    CHECK_FUNCTION_POINTER(recvfrom);
-    
+    CHECK_FUNCTION_POINTER(recvfrom);   
     return recvfrom_ptr(fd, buf, n, flags, addr, addr_len);
 }
 
 ssize_t libc_sendmsg (int fd, const struct msghdr *message, int flags)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(sendmsg);
     CHECK_FUNCTION_POINTER(sendmsg);
-
     return sendmsg_ptr(fd, message, flags);
 }
 
 ssize_t libc_recvmsg (int fd, struct msghdr *message, int flags)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(recvmsg);
     CHECK_FUNCTION_POINTER(recvmsg);
-
     return recvmsg_ptr(fd, message, flags);
 }
 
 
 int libc_listen (int fd, int n)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(listen);
     CHECK_FUNCTION_POINTER(listen);
-
     return listen_ptr(fd, n);
 }
 
 int libc_accept (int fd, struct sockaddr *addr, socklen_t *addr_len)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(accept);
     CHECK_FUNCTION_POINTER(accept);
-
     return accept_ptr(fd, addr, addr_len);
 }
 
 int libc_shutdown (int fd, int how)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(shutdown);
     CHECK_FUNCTION_POINTER(shutdown);
-    
     return shutdown_ptr(fd, how);
 }
 
 int libc_close (int fd)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(close);
     CHECK_FUNCTION_POINTER(close);
-
     return close_ptr(fd);
 }
 
 ssize_t libc_read (int fd, void *buf, size_t n)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(read);
     CHECK_FUNCTION_POINTER(read);
-
     return read_ptr(fd, buf, n);
 }
 
 ssize_t libc_write (int fd, const void *buf, size_t n)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(write);
     CHECK_FUNCTION_POINTER(write);
-
     return write_ptr(fd, buf, n);
 }
 
 int libc_getsockname (int fd, struct sockaddr *addr, socklen_t *len)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(getsockname);
     CHECK_FUNCTION_POINTER(getsockname);
-
     return getsockname_ptr(fd, addr, len);
 }
 
 int libc_getpeername (int fd, struct sockaddr *addr, socklen_t *len)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(getpeername);
     CHECK_FUNCTION_POINTER(getpeername);
-
     return getpeername_ptr(fd, addr, len);
 }
 
 
-int libc_getsockopt (int fd, int level, int optname, void *optval, 
-		     socklen_t *optlen)
+int libc_getsockopt (int fd, int level, int optname, void *optval, socklen_t *optlen)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(getsockopt);
     CHECK_FUNCTION_POINTER(getsockopt);
-
     return getsockopt_ptr(fd, level, optname, optval, optlen);
 }
 
-int libc_setsockopt (int fd, int level, int optname, const void *optval,
-                     socklen_t optlen)
+int libc_setsockopt (int fd, int level, int optname, const void *optval, socklen_t optlen)
 {
-CALLED(__func__);
-
+    CALLED(__func__);
     INIT_FUNCTION_POINTER(setsockopt);
     CHECK_FUNCTION_POINTER(setsockopt);
-
     return setsockopt_ptr(fd, level, optname, optval, optlen);
 }
-
-/* vim: set expandtab ts=4 sw=4 tw=80: */
