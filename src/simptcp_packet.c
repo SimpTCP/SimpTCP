@@ -49,6 +49,12 @@ void simptcp_create_packet(struct simptcp_socket *s, simptcp_generic_header *p)
 
 }
 
+/*! \fn void simptcp_create_packet_data(struct simptcp_socket *s, const void* data, size_t len)
+ * \brief Cree un packet simptcp avec les données contenues dans *data.
+ * \param s pointeur sur un simptcp_socket
+ * \param data pointeur sur les données à envoyer
+ * \param len taille des données à envoyer
+*/
 void simptcp_create_packet_data(struct simptcp_socket *s, const void* data, size_t len)
 {
 #if __DEBUG__
@@ -67,6 +73,7 @@ void simptcp_create_packet_data(struct simptcp_socket *s, const void* data, size
   s->out_len = SIMPTCP_GHEADER_SIZE + len;
 
 }
+
 /*! \fn void simptcp_create_packet_syn(struct simptcp_socket *s)
  * \brief Cree un packet simptcp SYN dans le buffer du socket
  * \param s pointeur sur le socket
@@ -89,6 +96,10 @@ void simptcp_create_packet_syn(struct simptcp_socket *s)
   s->out_len = SIMPTCP_GHEADER_SIZE;
 }
 
+/*! \fn void simptcp_create_packet_syn(struct simptcp_socket *d)
+ * \brief Cree un packet simptcp SYN ACK dans le buffer du socket
+ * \param s pointeur sur le socket
+*/
 void simptcp_create_packet_syn_ack(struct simptcp_socket *d)
 {
 #if __DEBUG__
@@ -107,6 +118,10 @@ void simptcp_create_packet_syn_ack(struct simptcp_socket *d)
   d->out_len = SIMPTCP_GHEADER_SIZE;
 }
 
+/*! \fn void simptcp_create_packet_syn(struct simptcp_socket *d)
+ * \brief Cree un packet simptcp ACK dans le buffer du socket
+ * \param s pointeur sur le socket
+*/
 void simptcp_create_packet_ack(struct simptcp_socket *d)
 {
 #if __DEBUG__

@@ -334,17 +334,11 @@ int simptcp_socket_send_out_buffer(struct simptcp_socket* sock)
   return ret;
 }
 
-int simptcp_socket_send_syn(struct simptcp_socket *sock)
-{
-#if __DEBUG__
-  printf("function %s called\n", __func__);
-#endif
-  lock_simptcp_socket(sock);
-  simptcp_create_packet_syn(sock);
-  unlock_simptcp_socket(sock);
-  return simptcp_socket_send_out_buffer(sock);
-}
-
+/*! \fn int simptcp_socket_resend_out_buffer(struct simptcp_socket* sock)
+ * \brief Renvoie au remote_simptcp le packet present dans le out_buffer, incremente simptcp_retransmit_count et nbr_retransmit
+ * \param sock pointeur sur un socket SimTCP
+ * \return 0 si toutes les données ont été envoyées, -1 sinon.
+ */
 int simptcp_socket_resend_out_buffer(struct simptcp_socket *sock)
 {
 #if __DEBUG__
@@ -353,6 +347,22 @@ int simptcp_socket_resend_out_buffer(struct simptcp_socket *sock)
   lock_simptcp_socket(sock);
   sock->simptcp_retransmit_count++;
   sock->nbr_retransmit++;
+  unlock_simptcp_socket(sock);
+  return simptcp_socket_send_out_buffer(sock);
+}
+
+/*! \fn int simptcp_socket_send_syn(struct simptcp_socket* sock)
+ * \brief Cree pour envoie un packet syn au remote_simptcp
+ * \param sock pointeur sur un socket SimTCP
+ * \return 0 si toutes les données ont été envoyées, -1 sinon.
+ */
+int simptcp_socket_send_syn(struct simptcp_socket *sock)
+{
+#if __DEBUG__
+  printf("function %s called\n", __func__);
+#endif
+  lock_simptcp_socket(sock);
+  simptcp_create_packet_syn(sock);
   unlock_simptcp_socket(sock);
   return simptcp_socket_send_out_buffer(sock);
 }
