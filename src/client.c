@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
   bzero(buffer,256);
   fgets(buffer,255,stdin);
   /* send the message */
-  n = write(sockfd,buffer,strlen(buffer));
+  n = write(sockfd,buffer,strlen(buffer)-1);
   if (n < 0) 
     error("ERROR writing to socket");
   close(sockfd);

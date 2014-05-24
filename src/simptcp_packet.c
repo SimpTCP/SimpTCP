@@ -494,10 +494,10 @@ void simptcp_lprint_packet (char * buf)
 	    simptcp_get_ack_num(buf),hlen,sflags);
     printf ("+----------------+-----------------+-------------------+\n");
     if (!flags)
-      {
-        printf ("| DATA : %35s           | \n",(buf+hlen));
-	printf ("+----------------------------------+-------------------+\n");
-      }
+    {
+      printf ("| DATA : %45s |\n",(buf+hlen));
+      printf ("+------------------------------------------------------+\n");
+    }
 }
 
 
