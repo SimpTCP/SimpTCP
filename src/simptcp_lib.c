@@ -1261,23 +1261,27 @@ ssize_t established_simptcp_socket_state_send (struct simptcp_socket* sock, cons
 #if __DEBUG__
   printf("function %s called\n", __func__);
 #endif
-  int k = 0;
+
   lock_simptcp_socket(sock);
   simptcp_create_packet_data(sock, buf, n);
-  sock->socket_state_sender = 2;
+  sock->socket_state_sender = wait_ack;
   unlock_simptcp_socket(sock);
   simptcp_socket_send_out_buffer(sock);
-  do{
 
-      if(k==5)  //refait un envoi tout les 1000ms
-      {
-        k=0;
-        simptcp_socket_resend_out_buffer(sock);
-      }
-      usleep(200000);
-      k++;
+  start_timer(sock, sock->timer_duration);
 
-  }while(sock->socket_state_sender == 2 && sock->nbr_retransmit <=3);
+  while(sock->socket_state_sender == wait_ack && sock->nbr_retransmit <= 3){}
+  // do{
+
+  //     if(k==5)  //refait un envoi tout les 1000ms
+  //     {
+  //       k=0;
+  //       simptcp_socket_resend_out_buffer(sock);
+  //     }
+  //     usleep(200000);
+  //     k++;
+
+  // }while(sock->socket_state_sender == wait_ack && sock->nbr_retransmit <=3);
 
   return 0;
 }    
@@ -1371,6 +1375,17 @@ void established_simptcp_socket_state_handle_timeout (struct simptcp_socket* soc
 #if __DEBUG__
     printf("function %s called\n", __func__);
 #endif
+
+  lock_simptcp_socket(sock);
+  stop_timer(sock);
+  unlock_simptcp_socket(sock);
+
+  if(sock->socket_type == client && sock->nbr_retransmit <= 3 && sock->socket_state_sender == wait_ack)
+  {
+    simptcp_socket_resend_out_buffer(sock);
+    start_timer(sock, sock->timer_duration);
+  }
+
 }
 
 
