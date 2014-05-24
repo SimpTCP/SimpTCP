@@ -63,8 +63,8 @@ void simptcp_create_packet_data(struct simptcp_socket *s, const void* data, size
 	h.header_len = SIMPTCP_GHEADER_SIZE;
 	h.window_size = SIMPTCP_MAX_SIZE;
 	h.total_len = SIMPTCP_GHEADER_SIZE + len;
-	simptcp_create_packet(s, &h);
 	memcpy(s->out_buffer + SIMPTCP_GHEADER_SIZE, data, len);
+	simptcp_create_packet(s, &h);
 	s->out_len = SIMPTCP_GHEADER_SIZE + len;
 }
 
@@ -337,7 +337,7 @@ void simptcp_add_checksum(char *buffer, int len)
 
 	/* compute sender checksum */
 	header->checksum = 0;
-	for (i = 0; i < len / 2; ++i)
+	for (i = 0; i < len / 2; i++)
 	{
 		checksum += buf[i];
 	}
@@ -359,6 +359,7 @@ int simptcp_check_checksum(char *buffer, int len)
 	int i;
 	u_int16_t checksum = 0;
 	u_int16_t *buf = (u_int16_t *) buffer;
+	int ret;
 	const simptcp_generic_header *header = (const simptcp_generic_header *) buffer;
 
 	// if length is odd we pad with 0
@@ -374,9 +375,13 @@ int simptcp_check_checksum(char *buffer, int len)
 		if (i == 7) continue;     /* checksum is the 8th double byte word */ 
 		checksum += buf[i];
 	}
-	DPRINTF("computed : %4x -- needed : %4x\n", checksum, header->checksum);
 	/* check sender and receiver's checksum */
-   	return (checksum == (header->checksum));
+	ret = (checksum == (header->checksum));
+	if(ret == 0)
+	{
+		DPRINTF("computed : %4x -- needed : %4x\n", checksum, header->checksum);
+	}
+   	return ret;
 }
 
 
