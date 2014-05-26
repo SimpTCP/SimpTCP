@@ -88,11 +88,12 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
      * could be imporved using the open_sockets_list 
      * which points to the head of the list of open sockets
 	 */
-    for (fd=0;fd< MAX_OPEN_SOCK;fd++)
+    for (fd=0; fd<simptcp_entity.open_simptcp_sockets; fd++)
     {
         if ((sock=simptcp_entity.simptcp_socket_descriptors[fd]) != NULL)
         { /* this is an open socket ..*/
-            if (sock->local_simptcp.sin_port == dport
+            if (sock->socket_type != listening_server
+                && sock->local_simptcp.sin_port == dport
                 && sock->remote_simptcp.sin_addr.s_addr == simptcp_remote.sin_addr.s_addr
                 && sock->remote_simptcp.sin_port == simptcp_remote.sin_port)
             { /* this is the fetched socket */
@@ -103,10 +104,10 @@ int demultiplex_packet(char * buffer,struct sockaddr_in * udp_remote)
     }
 
     /* now, check if the packet is destined for a listening sock */
-    for (fd=0;fd< MAX_OPEN_SOCK;fd++)
+    for (fd=0; fd<simptcp_entity.open_simptcp_sockets; fd++)
     {
         if((sock=simptcp_entity.simptcp_socket_descriptors[fd]) != NULL)
-        { 
+        {
             if((sock->local_simptcp.sin_port == dport) && (sock->socket_type == listening_server))
             { /* this is the fetched listening socket */
 	  		   DPRINTF("Delivering packet to socket fd %u at state %s\n", fd, simptcp_socket_state_get_str(sock->socket_state));

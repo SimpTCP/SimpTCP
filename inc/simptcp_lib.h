@@ -76,7 +76,11 @@ struct simptcp_socket { /* SimpTCP Protocol Control Block */
 					      used by sys call accept to set up new connections */
   int pending_conn_req; /*!< number of pending syn requests. 
 						 For simplicity, assume 1 */
+  struct simptcp_socket * * open_conn; /*remote SAP of active connected clients*/
 
+  int number_open_conn;/*number of active connected clients*/
+
+  int max_active_conn; /*max active connection*/
   int max_conn_req_backlog; /*!< this is fixed with sys call listen */
 
   /* simptcp SAP Address */

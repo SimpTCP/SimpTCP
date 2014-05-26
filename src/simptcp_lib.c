@@ -561,7 +561,7 @@ int listen_simptcp_socket_state_passive_open (struct simptcp_socket* sock, int n
  * \param sock pointeur sur les variables d'etat (#simptcp_socket) du socket simpTCP
  * \param [out] addr pointeur sur l'adresse du socket distant de la connexion qui vient d'etre acceptee
  * \param len taille en octet de l'adresse du socket distant
- * \return 0 si succes, -1 si erreur/echec
+ * \return positif (fd) si succes, -1 si erreur/echec
  */
 int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sockaddr* addr, socklen_t* len) 
 {
@@ -584,18 +584,20 @@ int listen_simptcp_socket_state_accept (struct simptcp_socket* sock, struct sock
 
     if(c->socket_state == &(simptcp_entity.simptcp_socket_states->established))
     {
-        ret = 0;
+        
         lock_simptcp_socket(sock);
+        simptcp_entity.simptcp_socket_descriptors[simptcp_entity.open_simptcp_sockets] = c;
+        ret = simptcp_entity.open_simptcp_sockets++;
         sock->new_conn_req[sock->pending_conn_req-1] = NULL;
         sock->pending_conn_req--;
         unlock_simptcp_socket(sock);
         memcpy(addr, &(c->remote_udp), sizeof(struct sockaddr));
+        DPRINTF("%d\n",ret );
     }
     else
     {
         errno = ETIMEDOUT;
     }
-
     return ret;
 }
 
