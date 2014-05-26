@@ -1025,12 +1025,12 @@ void synrcvd_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* so
                 c->next_seq_num+1 == simptcp_get_ack_num(buf))
             {
 
-
                 c->next_ack_num = simptcp_get_seq_num(buf)+1;
                 c->timer_duration = sock->timer_duration;
                 c->next_seq_num++;
                 c->socket_state = &(simptcp_entity.simptcp_socket_states->established);
                 lock_simptcp_socket(sock);
+                stop_timer(sock);
                 sock->socket_state = &(simptcp_entity.simptcp_socket_states->established);
                 unlock_simptcp_socket(sock);
                 DPRINTF("New client etablished!\n");
@@ -1222,6 +1222,9 @@ void established_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket
 {
     CALLED(__func__);
     char flags = simptcp_get_flags(buf);
+    lock_simptcp_socket(sock);
+    stop_timer(sock);
+    unlock_simptcp_socket(sock);
     if(flags == 0){
         lock_simptcp_socket(sock);
         unsigned int leng =simptcp_get_total_len(buf)-simptcp_get_head_len(buf);
