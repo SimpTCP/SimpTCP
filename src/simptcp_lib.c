@@ -1190,6 +1190,7 @@ ssize_t established_simptcp_socket_state_recv (struct simptcp_socket* sock, void
 int established_simptcp_socket_state_close (struct simptcp_socket* sock)
 {
     CALLED(__func__);
+
     return -1;
 }
 
@@ -1205,7 +1206,28 @@ int established_simptcp_socket_state_close (struct simptcp_socket* sock)
 int established_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
     CALLED(__func__);
-    return -1;
+    int ret =-1;
+    lock_simptcp_socket(sock);
+    simptcp_create_packet_fin(sock);
+    sock->socket_state = &(simptcp_entity.simptcp_socket_states->finwait1);
+    unlock_simptcp_socket(sock);
+    simptcp_socket_send_out_buffer(sock);
+    start_timer(sock, sock->timer_duration);
+
+
+    // wait until fin ack received
+    while(sock->nbr_retransmit <= 3 &&  sock->socket_state == &(simptcp_entity.simptcp_socket_states->finwait1)){}
+ 
+    if(sock->socket_state == &(simptcp_entity.simptcp_socket_states->finwait1))
+    {
+        ret = 0;
+    }
+    else
+    {
+        errno = ETIMEDOUT;
+    }
+
+    return ret;
 }
 
 /**
@@ -1376,6 +1398,7 @@ int closewait_simptcp_socket_state_close (struct simptcp_socket* sock)
 int closewait_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
     CALLED(__func__);
+
     return -1;
 }
 
@@ -1536,6 +1559,12 @@ int finwait1_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how
 void finwait1_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
     CALLED(__func__);
+    char flags = simptcp_get_flags(buf);
+    if(flags & ACK && sock->next_seq_num+1 == ack_num)
+    {
+
+    }
+
 }
 
 /**
@@ -1549,6 +1578,14 @@ void finwait1_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* s
 void finwait1_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
     CALLED(__func__);
+    lock_simptcp_socket(sock);
+    stop_timer(sock);
+    unlock_simptcp_socket(sock);
+    if(sock->nbr_retransmit <= 3)
+    {
+        simptcp_socket_resend_out_buffer(sock);
+        start_timer(sock, sock->timer_duration);
+    }
 }
 
 

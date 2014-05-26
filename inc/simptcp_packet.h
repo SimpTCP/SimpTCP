@@ -111,6 +111,7 @@ void simptcp_create_packet_syn(struct simptcp_socket *s);
 void simptcp_create_packet_syn_ack(struct simptcp_socket *d);
 void simptcp_create_packet_ack(struct simptcp_socket *d);
 void simptcp_create_packet_data(struct simptcp_socket *s, const void* data, size_t len);
+void simptcp_create_packet_fin(struct simptcp_socket *d);
 
 void    simptcp_set_sport (char *buffer, u_int16_t sport);
 u_int16_t simptcp_get_sport (const char *buffer);

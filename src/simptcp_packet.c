@@ -108,7 +108,7 @@ void simptcp_create_packet_syn_ack(struct simptcp_socket *d)
 	d->out_len = SIMPTCP_GHEADER_SIZE;
 }
 
-/*! \fn void simptcp_create_packet_syn(struct simptcp_socket *d)
+/*! \fn void simptcp_create_packet_ack(struct simptcp_socket *d)
  * \brief Cree un packet simptcp ACK dans le buffer du socket
  * \param s pointeur sur le socket
 */
@@ -126,6 +126,26 @@ void simptcp_create_packet_ack(struct simptcp_socket *d)
 	h.total_len = SIMPTCP_GHEADER_SIZE;
 	simptcp_create_packet(d, &h);
 	d->out_len = SIMPTCP_GHEADER_SIZE;
+}
+/*! \fn void simptcp_create_packet_fin(struct simptcp_socket *d)
+ * \brief Cree un packet simptcp FIN dans le buffer du socket
+ * \param s pointeur sur le socket
+*/
+void simptcp_create_packet_fin(struct simptcp_socket *d)
+{
+    CALLED(__func__);
+    simptcp_generic_header h;
+    h.sport = ntohs(d->local_simptcp.sin_port);
+    h.dport = ntohs(d->remote_simptcp.sin_port);
+    h.seq_num = d->next_seq_num;
+    h.ack_num = d->next_ack_num;
+    h.header_len = SIMPTCP_GHEADER_SIZE;
+    h.flags = FIN;
+    h.window_size = SIMPTCP_MAX_SIZE;
+    h.total_len = SIMPTCP_GHEADER_SIZE;
+    simptcp_create_packet(d, &h);
+    d->out_len = SIMPTCP_GHEADER_SIZE;
+
 }
 
 
