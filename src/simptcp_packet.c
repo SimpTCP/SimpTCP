@@ -432,6 +432,8 @@ void simptcp_lprint_packet (char * buf)
 	strcat(sflags, "|");
 	strcat(sflags, ((flags & ACK) == ACK) ? COLOR("A", GREEN) : COLOR("A", RED));
 	strcat(sflags, "|");
+	strcat(sflags, ((flags & FIN) == FIN) ? COLOR("F", GREEN) : COLOR("F", RED));
+	strcat(sflags, "|");
 	strcat(sflags, ((flags & RST) == RST) ? COLOR("R", GREEN) : COLOR("R", RED));
 
 	DPRINTF("+----------------+-----------------+-------------------+\n");
@@ -462,6 +464,8 @@ void simptcp_print_packet (char * buf)
 	strcat(sflags, ((flags & SYN) == SYN) ? COLOR("S", GREEN) : COLOR("S", RED));
 	strcat(sflags, "|");
 	strcat(sflags, ((flags & ACK) == ACK) ? COLOR("A", GREEN) : COLOR("A", RED));
+	strcat(sflags, "|");
+	strcat(sflags, ((flags & FIN) == FIN) ? COLOR("F", GREEN) : COLOR("F", RED));
 	strcat(sflags, "|");
 	strcat(sflags, ((flags & RST) == RST) ? COLOR("R", GREEN) : COLOR("R", RED));
 
