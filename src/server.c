@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     }
 
     printf("Here is the message: %s\n",buffer);
-    n = write(sockfd, buffer, n);
+    n = write(newsockfd, buffer, n);
     if (n < 0)
     {
         error("ERROR writing to socket");
