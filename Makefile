@@ -21,4 +21,4 @@ build:
 
 clean:
 	make -C $(SRCDIR) clean
-	cd $(BUILDDIR) && rm $(EXEC)
+	cd $(BUILDDIR) && rm -rf $(EXEC)

@@ -1024,6 +1024,8 @@ void synrcvd_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* so
                 c->remote_simptcp.sin_port == sock->remote_simptcp.sin_port &&
                 c->next_seq_num+1 == simptcp_get_ack_num(buf))
             {
+
+
                 c->next_ack_num = simptcp_get_seq_num(buf)+1;
                 c->next_seq_num++;
                 c->socket_state = &(simptcp_entity.simptcp_socket_states->established);
@@ -1134,6 +1136,7 @@ ssize_t established_simptcp_socket_state_send (struct simptcp_socket* sock, cons
     lock_simptcp_socket(sock);
     simptcp_create_packet_data(sock, buf, n);
     sock->socket_state_sender = wait_ack;
+    printf("salut tarace seqnum: %d, acknum :%d", sock->next_seq_num, sock->next_ack_num);
     unlock_simptcp_socket(sock);
     simptcp_socket_send_out_buffer(sock);
 
@@ -1165,7 +1168,17 @@ ssize_t established_simptcp_socket_state_recv (struct simptcp_socket* sock, void
 {
     CALLED(__func__);
     while(sock->in_len == 0){}
-    return 0;
+    memcpy(buf, sock->in_buffer, sock->in_len);
+    printf("avant creer ack seqnum : %d, acknum : %d\n",sock->next_seq_num, sock->next_ack_num );
+    simptcp_create_packet_ack(sock);
+    printf("apres creer ack seqnum : %d, acknum : %d\n",sock->next_seq_num, sock->next_ack_num );
+    simptcp_socket_send_out_buffer(sock);
+    int tmp = sock->in_len;
+    lock_simptcp_socket(sock);
+    memset(sock->in_buffer, 0, sock->in_len);
+    sock->in_len = 0;
+    unlock_simptcp_socket(sock);
+    return tmp;
 }
 
 /**
@@ -1210,6 +1223,20 @@ int established_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int 
 void established_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
     CALLED(__func__);
+    char flags = simptcp_get_flags(buf);
+    if(flags == 0){
+        lock_simptcp_socket(sock);
+        unsigned int leng =simptcp_get_total_len(buf)-simptcp_get_head_len(buf);
+        memcpy(sock->in_buffer,buf+simptcp_get_head_len(buf), leng);
+        sock->in_len = leng;
+        unlock_simptcp_socket(sock);
+    }
+    else if(flags & ACK && simptcp_get_ack_num(buf) == sock->next_seq_num+1){
+        lock_simptcp_socket(sock);
+        sock->next_seq_num = simptcp_get_ack_num(buf);
+        sock->socket_state_sender = wait_message;
+        unlock_simptcp_socket(sock);
+    }
 }
 
 /**

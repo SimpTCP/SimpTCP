@@ -96,6 +96,12 @@ int main(int argc, char *argv[])
     }
 
     printf("Here is the message: %s\n",buffer);
+    n = write(sockfd, buffer, n);
+    if (n < 0)
+    {
+        error("ERROR writing to socket");
+        return 1;
+    }
     close(newsockfd);
     return 0; 
 }
