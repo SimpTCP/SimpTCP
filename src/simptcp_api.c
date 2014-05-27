@@ -172,7 +172,7 @@ int shutdown (int fd, int how)
 {
     CALLED(__func__);
     struct simptcp_socket* sock;
-
+    int ret;
     if (!is_simptcp_descriptor(fd))
     {
         return libc_shutdown(fd, how);
@@ -180,7 +180,9 @@ int shutdown (int fd, int how)
 
     /* Here comes the code for the shutdown related to simtcp */
     sock = simptcp_entity.simptcp_socket_descriptors[fd];
-    return sock->socket_state->shutdown(sock,how);  
+    ret = sock->socket_state->shutdown(sock,how);  
+    while(sock->socket_state != &(simptcp_entity.simptcp_socket_states->closed)){}
+    return ret;
 }
 
 int close (int fd)
