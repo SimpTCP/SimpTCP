@@ -459,7 +459,7 @@ void simptcp_lprint_packet (char * buf)
 	DPRINTF("+----------------+-----------------+-------------------+\n");
 	DPRINTF("| sport : %5hu  | dport : %5hu   | seqnum : %5hu    |\n", simptcp_get_sport(buf), simptcp_get_dport(buf), simptcp_get_seq_num(buf));
 	DPRINTF("+----------------+-----------------+-------------------+\n");
-	DPRINTF("| acknum : %5hu | hlen : %3hhu      | Flags : %10s     |\n", simptcp_get_ack_num(buf), hlen, sflags);
+	DPRINTF("| acknum : %5hu | hlen : %3hhu      | Flags : %7s   |\n", simptcp_get_ack_num(buf), hlen, sflags);
 	DPRINTF("+----------------+-----------------+-------------------+\n");
 	if (!flags)
 	{
