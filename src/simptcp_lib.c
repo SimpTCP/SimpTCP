@@ -1205,20 +1205,22 @@ int established_simptcp_socket_state_close (struct simptcp_socket* sock)
  */
 int established_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how)
 {
+    // how est toujours SHUT_RDWR (fermeture des deux connexions)
     CALLED(__func__);
     int ret =-1;
+
     lock_simptcp_socket(sock);
     simptcp_create_packet_fin(sock);
     sock->socket_state = &(simptcp_entity.simptcp_socket_states->finwait1);
     unlock_simptcp_socket(sock);
+
     simptcp_socket_send_out_buffer(sock);
     start_timer(sock, sock->timer_duration);
 
-
-    // wait until fin ack received
-    while(sock->nbr_retransmit <= 3 &&  sock->socket_state == &(simptcp_entity.simptcp_socket_states->finwait1)){}
+    // wait until fin ack or fin received
+    while(sock->nbr_retransmit <= 3 &&  sock->socket_state != &(simptcp_entity.simptcp_socket_states->closed)){}
  
-    if(sock->socket_state == &(simptcp_entity.simptcp_socket_states->finwait1))
+    if(sock->socket_state == &(simptcp_entity.simptcp_socket_states->closed))
     {
         ret = 0;
     }
@@ -1246,29 +1248,34 @@ void established_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket
     char flags = simptcp_get_flags(buf);
     lock_simptcp_socket(sock);
     stop_timer(sock);
+    unlock_simptcp_socket(sock);
+
     if(flags == 0)
     {
-        unsigned int leng =simptcp_get_total_len(buf)-simptcp_get_head_len(buf);
+        lock_simptcp_socket(sock);
+        unsigned int leng = simptcp_get_total_len(buf)-simptcp_get_head_len(buf);
         memcpy(sock->in_buffer,buf+simptcp_get_head_len(buf), leng);
         sock->in_len = leng;
         sock->next_ack_num = simptcp_get_seq_num(buf)+1;
         unlock_simptcp_socket(sock);
+        
     }
     else if(flags & ACK && simptcp_get_ack_num(buf) == sock->next_seq_num+1)
     {
+        lock_simptcp_socket(sock);
         sock->next_seq_num = simptcp_get_ack_num(buf);
         sock->socket_state_sender = wait_message;
         unlock_simptcp_socket(sock);
     }
     else if(flags & FIN)
     {
+        lock_simptcp_socket(sock);
         sock->next_ack_num = simptcp_get_seq_num(buf)+1;
-        simptcp_create_packet_ack(sock);
-        start_timer(sock, sock->timer_duration);
         sock->socket_state = &(simptcp_entity.simptcp_socket_states->closewait);
+        simptcp_create_packet_ack(sock);
         unlock_simptcp_socket(sock);
         simptcp_socket_send_out_buffer(sock);
-
+        start_timer(sock, 0);
     }
 }
 
@@ -1441,9 +1448,8 @@ void closewait_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
     CALLED(__func__);
     lock_simptcp_socket(sock);
     stop_timer(sock);
+    DPRINTF("On vient de simuler la fin de l'application\n");
     simptcp_create_packet_fin(sock);
-    printf("qsdqs\n");
-    sock->socket_state_sender = wait_ack;
     sock->socket_state= &(simptcp_entity.simptcp_socket_states->lastack);
     unlock_simptcp_socket(sock);
     simptcp_socket_send_out_buffer(sock);
@@ -1579,16 +1585,18 @@ int finwait1_simptcp_socket_state_shutdown (struct simptcp_socket* sock, int how
 void finwait1_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* sock, void* buf, int len)
 {
     CALLED(__func__);
+    lock_simptcp_socket(sock);
+    stop_timer(sock);
+    unlock_simptcp_socket(sock);
+
     char flags = simptcp_get_flags(buf);
-    printf("acknumb reçu %d, flags : %d",simptcp_get_ack_num(buf),flags);
+
     if(flags & ACK && simptcp_get_ack_num(buf) == sock->next_seq_num+1)
     {
         lock_simptcp_socket(sock);
-        stop_timer(sock);
         sock->next_seq_num = simptcp_get_ack_num(buf);
         sock->socket_state = &(simptcp_entity.simptcp_socket_states->finwait2);
         unlock_simptcp_socket(sock);
-        start_timer(sock,sock->timer_duration);
     }
     else if(flags & FIN)
     {
@@ -1599,7 +1607,8 @@ void finwait1_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* s
         unlock_simptcp_socket(sock);
         simptcp_socket_send_out_buffer(sock);
         start_timer(sock, sock->timer_duration);
-        printf("FINWAIT1 RECEIVE FIN");
+    } else {
+        DPRINTF("%s : un-expected packet.\n", __func__);
     }
 
 }
@@ -1618,7 +1627,8 @@ void finwait1_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
     lock_simptcp_socket(sock);
     stop_timer(sock);
     unlock_simptcp_socket(sock);
-    if(sock->nbr_retransmit <= 3)
+
+    if(sock->nbr_retransmit <= 3 && sock->socket_state == &(simptcp_entity.simptcp_socket_states->finwait1))
     {
         simptcp_socket_resend_out_buffer(sock);
         start_timer(sock, sock->timer_duration);
@@ -1758,16 +1768,16 @@ void finwait2_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* s
 {
     CALLED(__func__);
     char flags = simptcp_get_flags(buf);
-    printf("FINWAIT2 PROCESS\n");
+
     if(flags & FIN)
     {
         lock_simptcp_socket(sock);
         sock->next_ack_num = simptcp_get_seq_num(buf)+1;
         simptcp_create_packet_ack(sock);
-        start_timer(sock, sock->timer_duration);
         sock->socket_state = &(simptcp_entity.simptcp_socket_states->timewait);
         unlock_simptcp_socket(sock);
         simptcp_socket_send_out_buffer(sock);
+        start_timer(sock, 0);
     }
 }
 
@@ -2059,13 +2069,14 @@ void lastack_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* so
 {
     CALLED(__func__);
     char flags = simptcp_get_flags(buf);
-    if(flags & ACK && sock->next_ack_num == simptcp_get_ack_num(buf))
+
+    if(flags & ACK && simptcp_get_ack_num(buf) == sock->next_seq_num+1)
     {
         lock_simptcp_socket(sock);
+        stop_timer(sock);
         sock->next_seq_num = simptcp_get_ack_num(buf);
         sock->socket_state = &(simptcp_entity.simptcp_socket_states->closed);
         unlock_simptcp_socket(sock);
-        //todo: liberer tout
     }
 }
 
@@ -2084,9 +2095,8 @@ void lastack_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
     stop_timer(sock);
     unlock_simptcp_socket(sock);
     
-    if(sock->socket_state_sender == wait_message && sock->nbr_retransmit <=3 && sock->socket_state == &(simptcp_entity.simptcp_socket_states->lastack))
+    if(sock->nbr_retransmit <=3 && sock->socket_state == &(simptcp_entity.simptcp_socket_states->lastack))
     {
-        printf("LASTACK HANDLE TIMEOUT\n");
         simptcp_socket_resend_out_buffer(sock);
         start_timer(sock, sock->timer_duration);
     }
@@ -2234,7 +2244,10 @@ void timewait_simptcp_socket_state_process_simptcp_pdu (struct simptcp_socket* s
  */
 void timewait_simptcp_socket_state_handle_timeout (struct simptcp_socket* sock)
 {
+    lock_simptcp_socket(sock);
+    stop_timer(sock);
     sock->socket_state = &(simptcp_entity.simptcp_socket_states->closed);
+    unlock_simptcp_socket(sock);
     CALLED(__func__);
 }
 

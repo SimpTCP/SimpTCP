@@ -87,8 +87,6 @@ int main(int argc, char *argv[])
         error("ERROR writing to socket");
         return 1;
     }
-    bzero(buffer,256);
-    n = read(sockfd,buffer,255);
-    close(sockfd);
+    sleep(3);
     return 0;
 }

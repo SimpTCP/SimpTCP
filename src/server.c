@@ -98,6 +98,5 @@ int main(int argc, char *argv[])
     printf("Here is the message: %s\n",buffer);
 
     close(newsockfd);
-    printf("CIAO");
     return 0; 
 }
